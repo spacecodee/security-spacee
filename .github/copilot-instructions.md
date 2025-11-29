@@ -217,3 +217,21 @@ Each feature slice ({context}) MUST follow this structure exactly:
       the container stops (critical for Kubernetes rolling updates).
     * **Health Checks:** Dockerfiles MUST include a HEALTHCHECK instruction querying the Spring Boot Actuator
       /actuator/health endpoint.
+
+## **🐙 10\. Git Workflow & Versioning Strategy (GitFlow)**
+
+* **Branching Strategy:**
+    * **main**: Production ready. ONLY accepts merges from release/\* or hotfix/\*. Protected.
+    * **develop**: Integration branch. All features merge here. Deploys to Staging.
+    * **feat/{context}/{description}**: Feature branches (e.g., feat/auth/login-logic). Created from develop, merged to
+      develop via PR.
+    * **fix/{context}/{description}**: Bug fixes for develop.
+    * **hotfix/{version}**: Critical production bugs. Merged to main AND develop.
+* **Versioning (Semantic Versioning):**
+    * Follow **MAJOR.MINOR.PATCH** (e.g., 1.0.0).
+    * **MAJOR**: Breaking changes.
+    * **MINOR**: New features (backward compatible).
+    * **PATCH**: Bug fixes.
+* **Commit Convention:**
+    * MUST follow **Conventional Commits** (feat:, fix:, chore:, docs:).
+    * Example: feat(auth): add jwt validation logic
