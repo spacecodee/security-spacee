@@ -1,0 +1,112 @@
+# ==============================================================================
+# DOCKER COMPOSE - PRODUCTION ENVIRONMENT
+# ==============================================================================
+# Usage:
+#   1. Copy .env.prod.example to .env.prod and configure values
+#   2. Run: docker compose -f docker-compose.prod.yaml up -d
+# ==============================================================================
+
+name: security-spacee-prod
+
+services:
+  # ============================================================================
+  # SECURITY SPACEE - Java Application
+  # ============================================================================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: security-spacee:${APP_VERSION:-latest}
+    container_name: security-spacee-app
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    networks:
+      - prod-network
+    env_file:
+      - .env.prod
+    environment:
+      # Spring Profile
+      SPRING_PROFILES_ACTIVE: prod
+      # Override Redis host to use container name (internal network)
+      REDIS_HOST: redis
+      # Override server port inside container
+      SERVER_PORT: 8080
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        ["CMD", "curl", "-f", "http://localhost:8080/api/v1/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  # ============================================================================
+  # REDIS - Cache Layer (Production)
+  # ============================================================================
+  redis:
+    image: redis:8.4.0-alpine
+    container_name: security-spacee-redis-prod
+    networks:
+      - prod-network
+    volumes:
+      - redis-prod-data:/data
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --appendfsync
+      - everysec
+      - --maxmemory
+      - "${REDIS_MAX_MEMORY}"
+      - --maxmemory-policy
+      - "${REDIS_MAX_MEMORY_POLICY}"
+      - --requirepass
+      - "${REDIS_PASSWORD}"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  # ============================================================================
+  # MAILPIT - Email Testing (Optional for staging/testing prod locally)
+  # Remove this service in real production and use real SMTP
+  # Uses different ports than dev to avoid conflicts (9025 instead of 8025)
+  # ============================================================================
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: security-spacee-mailpit-prod
+    profiles:
+      - with-mailpit
+    ports:
+      - "${MAILPIT_UI_PORT:-9025}:8025"
+    networks:
+      - prod-network
+    healthcheck:
+      test:
+        ["CMD", "wget", "--spider", "-q", "http://localhost:8025/api/v1/info"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+networks:
+  prod-network:
+    driver: bridge
+    name: security-spacee-prod-network
+
+volumes:
+  redis-prod-data:
+    driver: local

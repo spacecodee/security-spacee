@@ -2,7 +2,8 @@
 # STAGE 1: BUILDER
 # Build the application using Gradle with dependency caching
 # ==============================================================================
-FROM gradle:8.12-jdk25 AS builder
+# Using official Gradle image with JDK 25 (Alpine for smaller size)
+FROM gradle:9.2.1-jdk25-alpine AS builder
 
 WORKDIR /app
 
@@ -14,7 +15,7 @@ COPY settings.gradle ./
 COPY build.gradle ./
 
 # Download dependencies separately (cached layer if build.gradle doesn't change)
-RUN gradle dependencies --no-daemon --refresh-dependencies || return 0
+RUN gradle dependencies --no-daemon --refresh-dependencies || true
 
 # Copy source code
 COPY src ./src
