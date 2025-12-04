@@ -34,7 +34,6 @@ spring:
     properties:
       hibernate:
         "[format_sql]": true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         jdbc:
           "[batch_size]": 25
           "[time_zone]": UTC
@@ -120,6 +119,8 @@ server:
   compression:
     enabled: true
     mime-types: application/json,application/xml,text/html,text/xml,text/plain
+  servlet:
+    context-path: /api/v1
 
 # =============================================================================
 # ACTUATOR (Health & Metrics)

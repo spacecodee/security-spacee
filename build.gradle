@@ -34,8 +34,11 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     // --- DATA & CACHING ---
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    // Netty DNS resolver for macOS Intel (match Spring Boot's Netty version)
+    runtimeOnly 'io.netty:netty-resolver-dns-native-macos:4.2.7.Final:osx-x86_64'
     // --- DATABASE MIGRATIONS ---
     implementation 'org.springframework.boot:spring-boot-starter-flyway'
+    runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.18.0'
     // API DOCUMENTATION (OpenAPI/Swagger)
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0'
     // --- JWT SUPPORT ---
@@ -70,6 +73,13 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+    // Java 25: Enable native access for Netty
+    jvmArgs '--enable-native-access=ALL-UNNAMED'
+}
+
+// Java 25: Enable native access for Netty (development)
+tasks.named('bootRun') {
+    jvmArgs '--enable-native-access=ALL-UNNAMED'
 }
 
 // --- Docker Optimization ---

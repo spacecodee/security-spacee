@@ -68,7 +68,8 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
 EXPOSE 8080
 
 # Environment variables (can be overridden at runtime)
-ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+UseG1GC" \
+# Java 25: --enable-native-access=ALL-UNNAMED for Netty native libraries
+ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+UseG1GC --enable-native-access=ALL-UNNAMED" \
     TZ=UTC \
     SPRING_PROFILES_ACTIVE=prod
 
