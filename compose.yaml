@@ -1,7 +1,0 @@
-name: security-spacee-backend-local
-
-networks:
-  app-network:
-    driver: bridge
-    external: true
-    name: postgresql-pgadmin_app-network

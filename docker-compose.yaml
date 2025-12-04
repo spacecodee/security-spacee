@@ -1,0 +1,66 @@
+name: security-spacee-backend-local
+
+services:
+  # ============================================================================
+  # REDIS - Cache Layer
+  # ============================================================================
+  redis:
+    image: redis:8.4.0-alpine
+    container_name: security-spacee-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - app-network
+    volumes:
+      - redis-data:/data
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory ${REDIS_MAX_MEMORY:-256mb}
+      --maxmemory-policy ${REDIS_MAX_MEMORY_POLICY:-allkeys-lru}
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    env_file:
+      - .env
+
+  # ============================================================================
+  # MAILPIT - Email Testing (SMTP Server + Web UI)
+  # ============================================================================
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: security-spacee-mailpit
+    ports:
+      - "${MAILPIT_SMTP_PORT:-1025}:1025"
+      - "${MAILPIT_UI_PORT:-8025}:8025"
+    networks:
+      - app-network
+    env_file:
+      - .env
+    environment:
+      MP_MAX_MESSAGES: ${MAILPIT_MAX_MESSAGES:-500}
+      MP_SMTP_AUTH_ACCEPT_ANY: ${MAILPIT_SMTP_AUTH_ACCEPT_ANY:-1}
+      MP_SMTP_AUTH_ALLOW_INSECURE: ${MAILPIT_SMTP_AUTH_ALLOW_INSECURE:-1}
+    healthcheck:
+      test:
+        ["CMD", "wget", "--spider", "-q", "http://localhost:8025/api/v1/info"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge
+    external: true
+    name: ${DOCKER_NETWORK_NAME:-postgresql-pgadmin_app-network}
+
+volumes:
+  redis-data:
+    driver: local
