@@ -1,19 +1,12 @@
-# ==============================================================================
-# APPLICATION CONFIGURATION - SECURITY SPACEE
-# Profile: Default (Development)
-# ==============================================================================
-
 spring:
   application:
     name: security-spacee
 
   # ===========================================================================
   # DATABASE CONFIGURATION (PostgreSQL)
+  # Override in profile-specific files
   # ===========================================================================
   datasource:
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 20
@@ -57,12 +50,10 @@ spring:
 
   # ===========================================================================
   # REDIS CACHE CONFIGURATION
+  # Override host/port/password in profile-specific files
   # ===========================================================================
   data:
     redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
-      password: ${REDIS_PASSWORD}
       timeout: 2000ms
       lettuce:
         pool:
@@ -72,19 +63,10 @@ spring:
           max-wait: -1ms
 
   # ===========================================================================
-  # EMAIL CONFIGURATION (SMTP - Mailpit for Development)
+  # EMAIL CONFIGURATION (SMTP)
+  # Override in profile-specific files
   # ===========================================================================
   mail:
-    host: ${MAIL_HOST}
-    port: ${MAIL_PORT}
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
-    properties:
-      mail:
-        smtp:
-          auth: ${MAIL_SMTP_AUTH}
-          starttls:
-            enable: ${MAIL_SMTP_STARTTLS}
     default-encoding: UTF-8
 
   # ===========================================================================
@@ -114,7 +96,7 @@ spring:
 # SERVER CONFIGURATION
 # =============================================================================
 server:
-  port: ${SERVER_PORT}
+  port: 8080  # Override in profile-specific files if needed
   shutdown: graceful
   compression:
     enabled: true
@@ -169,40 +151,37 @@ springdoc:
 
 # =============================================================================
 # APPLICATION CUSTOM PROPERTIES
+# Override sensitive values in profile-specific files
 # =============================================================================
 application:
-  # JWT Configuration
+  # JWT Configuration - MUST be overridden in profile files
   jwt:
-    secret: ${JWT_SECRET}
-    access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION}
-    refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION}
-    issuer: ${JWT_ISSUER}
+    issuer: security-spacee
 
-  # Security
+  # Security - Sensible defaults, override as needed
   security:
-    allowed-origins: ${ALLOWED_ORIGINS}
-    max-login-attempts: ${MAX_LOGIN_ATTEMPTS}
-    account-lock-duration: ${ACCOUNT_LOCK_DURATION}
+    max-login-attempts: 5
+    account-lock-duration: 900000  # 15 minutes in ms
 
-  # Cache TTL (milliseconds)
+  # Cache TTL (milliseconds) - Sensible defaults
   cache:
     ttl:
-      user-profile: ${CACHE_TTL_USER_PROFILE}
-      user-roles: ${CACHE_TTL_USER_ROLES}
-      permissions: ${CACHE_TTL_PERMISSIONS}
-      jwt-blacklist: ${CACHE_TTL_JWT_BLACKLIST}
+      user-profile: 1800000    # 30 minutes
+      user-roles: 900000       # 15 minutes
+      permissions: 3600000     # 1 hour
+      jwt-blacklist: 2592000000  # 30 days
 
 # =============================================================================
 # LOGGING CONFIGURATION (SLF4J)
+# Production defaults - Override in profile files for verbose logging
 # =============================================================================
 logging:
   level:
-    root: ${LOG_LEVEL_ROOT}
-    "[com.spacecodee]": ${LOG_LEVEL_APP}
+    root: INFO
+    "[com.spacecodee]": INFO
     "[org.springframework.web]": INFO
-    "[org.springframework.security]": ${LOG_LEVEL_APP}
-    "[org.hibernate.SQL]": ${LOG_LEVEL_SQL}
-    "[org.hibernate.type.descriptor.sql.BasicBinder]": TRACE
+    "[org.springframework.security]": INFO
+    "[org.hibernate.SQL]": WARN
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
