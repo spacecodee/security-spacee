@@ -1,67 +1,158 @@
-# Server configuration
-server:
-  port: ${SERVER_PORT:8080}
-  servlet:
-    context-path: /api/v1
-  shutdown: graceful
+# ==============================================================================
+# APPLICATION CONFIGURATION - SECURITY SPACEE
+# Profile: Default (Development)
+# ==============================================================================
 
 spring:
   application:
     name: security-spacee
-    version: 0.0.1
-  profiles:
-    active: ${SPRING_PROFILES_ACTIVE:local}
-  devtools:
-    restart:
-      enabled: false
-    livereload:
-      enabled: false
 
-  messages:
-    basename: i18n/messages
-    encoding: UTF-8
-    fallback-to-system-locale: true
-    cache-duration: 3600
+  # ===========================================================================
+  # DATABASE CONFIGURATION (PostgreSQL)
+  # ===========================================================================
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      pool-name: SecuritySpaceeHikariCP
 
+  # ===========================================================================
+  # JPA & HIBERNATE CONFIGURATION
+  # ===========================================================================
   jpa:
-    show-sql: false
-    open-in-view: false
     hibernate:
-      ddl-auto: validate
+      ddl-auto: validate  # NEVER use 'update' or 'create' in production
+    show-sql: false
+    open-in-view: false  # Prevent lazy loading in controllers
     properties:
       hibernate:
-        '[format_sql]': true
-        '[use_sql_comments]': true
-        '[jdbc.time_zone]': UTC
-        '[generate_statistics]': false
+        "[format_sql]": true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          "[batch_size]": 25
+          "[time_zone]": UTC
+        "[order_inserts]": true
+        "[order_updates]": true
+        cache:
+          "[use_second_level_cache]": false
 
-  data:
-    redis:
-      timeout: 60000
-      lettuce:
-        pool:
-          max-active: 8
-          max-idle: 8
-          min-idle: 0
-
-  jackson:
-    default-property-inclusion: non_null
-    time-zone: UTC
-
+  # ===========================================================================
+  # FLYWAY MIGRATION
+  # ===========================================================================
   flyway:
     enabled: true
     locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    baseline-version: 0
+    schemas: public
+    placeholder-replacement: true
+    out-of-order: false
 
-logging:
-  level:
-    root: INFO
-    '[org.springframework]': WARN
-    '[org.springframework.security]': INFO
-    '[org.hibernate]': WARN
-  pattern:
-    console: "%d{ISO8601} [%thread] %-5level [%logger{36}] - %msg%n"
-    file: "%d{ISO8601} [%thread] %-5level [%logger{36}] - %msg%n"
+  # ===========================================================================
+  # REDIS CACHE CONFIGURATION
+  # ===========================================================================
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 8
+          min-idle: 2
+          max-wait: -1ms
 
+  # ===========================================================================
+  # EMAIL CONFIGURATION (SMTP - Mailpit for Development)
+  # ===========================================================================
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH}
+          starttls:
+            enable: ${MAIL_SMTP_STARTTLS}
+    default-encoding: UTF-8
+
+  # ===========================================================================
+  # JACKSON JSON CONFIGURATION
+  # ===========================================================================
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      indent-output: false
+    deserialization:
+      fail-on-unknown-properties: false
+    time-zone: UTC
+
+  # ===========================================================================
+  # GRACEFUL SHUTDOWN (Rule 9: Resilience)
+  # ===========================================================================
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+  web:
+    error:
+      include-message: always
+      include-binding-errors: always
+      include-stacktrace: never
+      include-exception: false
+
+# =============================================================================
+# SERVER CONFIGURATION
+# =============================================================================
+server:
+  port: ${SERVER_PORT}
+  shutdown: graceful
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
+
+# =============================================================================
+# ACTUATOR (Health & Metrics)
+# =============================================================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  health:
+    redis:
+      enabled: true
+    db:
+      enabled: true
+    mail:
+      enabled: true
+  info:
+    env:
+      enabled: true
+    java:
+      enabled: true
+    os:
+      enabled: true
+
+# =============================================================================
+# SPRINGDOC (OpenAPI/Swagger)
+# =============================================================================
 springdoc:
   api-docs:
     path: /api-docs
@@ -69,17 +160,54 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     enabled: true
+    operations-sorter: method
     tags-sorter: alpha
-    operations-sorter: alpha
     display-request-duration: true
-    disable-swagger-default-url: true
-    use-root-path: true
+    doc-expansion: none
+  show-actuator: false
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics
-  endpoint:
-    health:
-      show-details: when-authorized
+# =============================================================================
+# APPLICATION CUSTOM PROPERTIES
+# =============================================================================
+application:
+  # JWT Configuration
+  jwt:
+    secret: ${JWT_SECRET}
+    access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION}
+    refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION}
+    issuer: ${JWT_ISSUER}
+
+  # Security
+  security:
+    allowed-origins: ${ALLOWED_ORIGINS}
+    max-login-attempts: ${MAX_LOGIN_ATTEMPTS}
+    account-lock-duration: ${ACCOUNT_LOCK_DURATION}
+
+  # Cache TTL (milliseconds)
+  cache:
+    ttl:
+      user-profile: ${CACHE_TTL_USER_PROFILE}
+      user-roles: ${CACHE_TTL_USER_ROLES}
+      permissions: ${CACHE_TTL_PERMISSIONS}
+      jwt-blacklist: ${CACHE_TTL_JWT_BLACKLIST}
+
+# =============================================================================
+# LOGGING CONFIGURATION (SLF4J)
+# =============================================================================
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT}
+    "[com.spacecodee]": ${LOG_LEVEL_APP}
+    "[org.springframework.web]": INFO
+    "[org.springframework.security]": ${LOG_LEVEL_APP}
+    "[org.hibernate.SQL]": ${LOG_LEVEL_SQL}
+    "[org.hibernate.type.descriptor.sql.BasicBinder]": TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/security-spacee.log
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 30
