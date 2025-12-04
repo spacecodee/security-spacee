@@ -1,0 +1,74 @@
+# ==============================================================================
+# DEPENDABOT CONFIGURATION
+# Automatically creates PRs for dependency updates
+# ==============================================================================
+
+version: 2
+updates:
+  # ============================================================================
+  # GRADLE DEPENDENCIES
+  # ============================================================================
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Lima"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "java"
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      # Group Spring Boot dependencies together
+      spring-boot:
+        patterns:
+          - "org.springframework.boot*"
+          - "org.springframework*"
+      # Group testing dependencies
+      testing:
+        patterns:
+          - "org.junit*"
+          - "org.mockito*"
+          - "org.assertj*"
+          - "org.testcontainers*"
+      # Group security dependencies
+      security:
+        patterns:
+          - "io.jsonwebtoken*"
+          - "org.passay*"
+
+  # ============================================================================
+  # DOCKER DEPENDENCIES
+  # ============================================================================
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "chore(docker)"
+
+  # ============================================================================
+  # GITHUB ACTIONS
+  # ============================================================================
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "chore(ci)"
+    groups:
+      # Group all GitHub Actions together
+      github-actions:
+        patterns:
+          - "*"
