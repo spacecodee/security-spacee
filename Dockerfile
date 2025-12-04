@@ -19,12 +19,12 @@ RUN gradle dependencies --no-daemon --refresh-dependencies || return 0
 # Copy source code
 COPY src ./src
 
-# Build the application (skip tests - they run in CI pipeline)
-RUN gradle bootJar -x test --no-daemon --info
-
-# Extract layers from the JAR (Rule 9: Layered JARs for faster deployments)
-WORKDIR /app/build/libs
-RUN java -Djarmode=layertools -jar ./*.jar extract
+# Build the application and extract layers in a single step
+# (Skip tests - they run in CI pipeline)
+# (Rule 9: Layered JARs for faster deployments)
+RUN gradle bootJar -x test --no-daemon && \
+    cd build/libs && \
+    java -Djarmode=layertools -jar ./*.jar extract
 
 # ==============================================================================
 # STAGE 2: RUNTIME
@@ -32,20 +32,20 @@ RUN java -Djarmode=layertools -jar ./*.jar extract
 # ==============================================================================
 FROM eclipse-temurin:25-jre-alpine AS runtime
 
-# Metadata
-LABEL maintainer="SpaceCodee Team <dev@spacecodee.com>"
-LABEL version="0.0.1-SNAPSHOT"
-LABEL description="Security Spacee - Enterprise RBAC Backend"
-LABEL org.opencontainers.image.source="https://github.com/spacecodee/security-spacee"
+# Metadata (OCI Image Spec)
+LABEL maintainer="SpaceCodee Team <dev@spacecodee.com>" \
+      version="0.0.1-SNAPSHOT" \
+      description="Security Spacee - Enterprise RBAC Backend" \
+      org.opencontainers.image.source="https://github.com/spacecodee/security-spacee"
 
-# Install curl for healthcheck (optional: wget is pre-installed in alpine)
+# Install curl, configure timezone, and create non-root user in a single layer
+# (SonarQube docker:S7031 - Merge consecutive RUN instructions)
 RUN apk add --no-cache curl tzdata && \
     cp /usr/share/zoneinfo/UTC /etc/localtime && \
     echo "UTC" > /etc/timezone && \
-    apk del tzdata
-
-# Create non-root user and group (Rule 9: Security Context)
-RUN addgroup -S spring && adduser -S spring -G spring
+    apk del tzdata && \
+    addgroup -S spring && \
+    adduser -S spring -G spring
 
 # Switch to non-root user
 USER spring:spring
