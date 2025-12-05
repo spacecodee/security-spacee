@@ -77,9 +77,10 @@ jacoco.exec
 target/
 
 ### Spring Boot Specific ###
+# Local development config (sensitive, user-specific)
 application-local.yaml
 application-dev.yaml
-application-test.yaml
+# NOTE: application-test.yaml is NOT ignored - it's needed for CI/CD
 
 ### Docker & Compose ###
 docker-compose.override.yml
