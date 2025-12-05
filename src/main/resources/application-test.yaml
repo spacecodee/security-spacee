@@ -43,9 +43,11 @@ spring:
   # ===========================================================================
   # H2 CONSOLE (Optional - for debugging tests)
   # ===========================================================================
+  # WARNING: The H2 console exposes database access and should only be enabled
+  # in isolated test environments. It is disabled by default for security.
   h2:
     console:
-      enabled: true
+      enabled: false
       path: /h2-console
 
   # ===========================================================================
