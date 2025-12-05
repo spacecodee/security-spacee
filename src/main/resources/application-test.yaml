@@ -1,0 +1,131 @@
+# ==============================================================================
+# APPLICATION CONFIGURATION - SECURITY SPACEE
+# Profile: TEST (Unit Tests & Integration Tests)
+# ==============================================================================
+# This file is used by:
+#   - JUnit tests locally
+#   - GitHub Actions CI pipeline
+# Activate with: --spring.profiles.active=test
+# ==============================================================================
+
+spring:
+  # ===========================================================================
+  # DATABASE CONFIGURATION (H2 In-Memory)
+  # Rule 4: Integration tests MUST use H2 In-Memory Database
+  # ===========================================================================
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+
+  # ===========================================================================
+  # JPA & HIBERNATE - Test Settings
+  # ===========================================================================
+  jpa:
+    hibernate:
+      ddl-auto: create-drop  # Recreate schema for each test run
+    show-sql: false          # Set to true for debugging
+    database-platform: org.hibernate.dialect.H2Dialect
+    properties:
+      hibernate:
+        "[format_sql]": true
+
+  # ===========================================================================
+  # FLYWAY - Disabled for tests (using JPA auto-ddl instead)
+  # ===========================================================================
+  flyway:
+    enabled: false
+
+  # ===========================================================================
+  # H2 CONSOLE (Optional - for debugging tests)
+  # ===========================================================================
+  # WARNING: The H2 console exposes database access and should only be enabled
+  # in isolated test environments. It is disabled by default for security.
+  h2:
+    console:
+      enabled: false
+      path: /h2-console
+
+  # ===========================================================================
+  # REDIS - Disabled or use embedded/mock
+  # ===========================================================================
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:
+  cache:
+    type: simple  # Use simple in-memory cache instead of Redis
+
+  # ===========================================================================
+  # EMAIL - Mock configuration (no real SMTP)
+  # ===========================================================================
+  mail:
+    host: localhost
+    port: 1025
+    username:
+    password:
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+# =============================================================================
+# SERVER - Test Configuration
+# =============================================================================
+server:
+  port: 0  # Random port for tests to avoid conflicts
+
+# =============================================================================
+# ACTUATOR - Minimal for tests
+# =============================================================================
+management:
+  health:
+    redis:
+      enabled: false  # Don't check Redis in tests
+    mail:
+      enabled: false  # Don't check Mail in tests
+
+# =============================================================================
+# APPLICATION CUSTOM PROPERTIES - Test Values
+# =============================================================================
+application:
+  # JWT Configuration (Test - Fixed values for reproducibility)
+  jwt:
+    # Test secret - 64 bytes base64 encoded (512 bits for HS512)
+    secret: 3v8pQkQwK1JpQ2ZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9v
+    access-token-expiration: 900000       # 15 minutes
+    refresh-token-expiration: 604800000   # 7 days
+    issuer: security-spacee-test
+
+  # Security - Test configuration
+  security:
+    allowed-origins: http://localhost:8080,http://localhost:3000
+    max-login-attempts: 5
+    account-lock-duration: 900000
+
+  # Cache TTL - Shorter for tests
+  cache:
+    ttl:
+      user-profile: 60000     # 1 minute
+      user-roles: 60000       # 1 minute
+      permissions: 60000      # 1 minute
+      jwt-blacklist: 60000    # 1 minute
+
+# =============================================================================
+# LOGGING - Minimal for tests (avoid noise)
+# =============================================================================
+logging:
+  level:
+    root: WARN
+    "[com.spacecodee]": INFO
+    "[org.springframework.web]": WARN
+    "[org.springframework.security]": WARN
+    "[org.hibernate.SQL]": WARN
+    "[org.springframework.test]": INFO
