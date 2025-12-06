@@ -180,3 +180,17 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64,linux/arm64
+
+      - name: Trigger Dokploy Deployment
+        if: success() && github.ref == 'refs/heads/develop'
+        env:
+          DOKPLOY_WEBHOOK_URL: ${{ secrets.DOKPLOY_WEBHOOK_URL }}
+        run: |
+          if [ -n "$DOKPLOY_WEBHOOK_URL" ]; then
+            curl -X POST "$DOKPLOY_WEBHOOK_URL" \
+              -H "Content-Type: application/json" \
+              --fail --silent --show-error \
+              --max-time 30 || echo "Dokploy webhook failed, but continuing..."
+          else
+            echo "DOKPLOY_WEBHOOK_URL not set, skipping deployment notification"
+          fi
