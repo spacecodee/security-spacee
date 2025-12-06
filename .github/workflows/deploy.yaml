@@ -6,7 +6,7 @@
 #   - After successful release (optional)
 # ==============================================================================
 
-name: 🌍 Deploy
+name: Deploy
 
 on:
   workflow_dispatch:
@@ -38,7 +38,7 @@ jobs:
   # DEPLOY TO STAGING
   # ============================================================================
   deploy-staging:
-    name: 🧪 Deploy to Staging
+    name: Deploy to Staging
     runs-on: ubuntu-latest
     if: github.event.inputs.environment == 'staging'
     environment:
@@ -46,60 +46,55 @@ jobs:
       url: https://staging.security-spacee.example.com
 
     steps:
-      - name: 📥 Checkout code
+      - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: 🔐 Login to GitHub Container Registry
+      - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 🔍 Verify Image Exists
+      - name: Verify Image Exists
         run: |
           IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version }}"
-          echo "🐳 Checking image: $IMAGE"
+          echo "Checking image: $IMAGE"
           docker manifest inspect $IMAGE || {
-            echo "❌ Image not found: $IMAGE"
+            echo "Image not found: $IMAGE"
             exit 1
           }
-          echo "✅ Image verified"
+          echo "Image verified"
 
-      - name: 📋 Deploy Configuration
+      - name: Deploy Configuration
         if: ${{ !github.event.inputs.dry_run }}
         run: |
-          echo "## 🧪 Staging Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "## Staging Deployment" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Version:** ${{ github.event.inputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Image:** ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Environment:** staging" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 🚀 Deployment Commands" >> $GITHUB_STEP_SUMMARY
+          echo "### Deployment Commands" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY
           echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "docker-compose -f docker-compose.staging.yaml up -d" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
 
       # TODO: Add actual deployment steps here
-      # Options:
-      # - SSH to server and docker-compose up
-      # - kubectl apply for Kubernetes
-      # - AWS ECS update service
-      # - Azure Container Apps deployment
 
-      - name: 🏁 Staging Deploy Placeholder
+      - name: Staging Deploy Placeholder
         run: |
-          echo "🧪 Would deploy to STAGING environment"
+          echo "Would deploy to STAGING environment"
           echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version }}"
           echo ""
-          echo "⚠️ Add your actual deployment logic here!"
+          echo "Add your actual deployment logic here!"
 
   # ============================================================================
   # DEPLOY TO PRODUCTION
   # ============================================================================
   deploy-production:
-    name: 🚀 Deploy to Production
+    name: Deploy to Production
     runs-on: ubuntu-latest
     if: github.event.inputs.environment == 'production'
     environment:
@@ -107,42 +102,42 @@ jobs:
       url: https://security-spacee.example.com
 
     steps:
-      - name: 📥 Checkout code
+      - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: 🔐 Login to GitHub Container Registry
+      - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 🔍 Verify Image Exists
+      - name: Verify Image Exists
         run: |
           IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version }}"
-          echo "🐳 Checking image: $IMAGE"
+          echo "Checking image: $IMAGE"
           docker manifest inspect $IMAGE || {
-            echo "❌ Image not found: $IMAGE"
+            echo "Image not found: $IMAGE"
             exit 1
           }
-          echo "✅ Image verified"
+          echo "Image verified"
 
-      - name: ⚠️ Production Confirmation
+      - name: Production Confirmation
         run: |
-          echo "⚠️ DEPLOYING TO PRODUCTION ⚠️"
+          echo "DEPLOYING TO PRODUCTION"
           echo "Version: ${{ github.event.inputs.version }}"
           echo "Dry Run: ${{ github.event.inputs.dry_run }}"
 
-      - name: 📋 Deploy Configuration
+      - name: Deploy Configuration
         if: ${{ !github.event.inputs.dry_run }}
         run: |
-          echo "## 🚀 Production Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "## Production Deployment" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Version:** ${{ github.event.inputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Image:** ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Environment:** production" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 🚀 Deployment Commands" >> $GITHUB_STEP_SUMMARY
+          echo "### Deployment Commands" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY
           echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "docker-compose -f docker-compose.prod.yaml up -d" >> $GITHUB_STEP_SUMMARY
@@ -150,29 +145,29 @@ jobs:
 
       # TODO: Add actual deployment steps here
 
-      - name: 🏁 Production Deploy Placeholder
+      - name: Production Deploy Placeholder
         if: ${{ !github.event.inputs.dry_run }}
         run: |
-          echo "🚀 Would deploy to PRODUCTION environment"
+          echo "Would deploy to PRODUCTION environment"
           echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version }}"
           echo ""
-          echo "⚠️ Add your actual deployment logic here!"
+          echo "Add your actual deployment logic here!"
 
   # ============================================================================
   # POST-DEPLOYMENT VERIFICATION
   # ============================================================================
   verify:
-    name: ✅ Verify Deployment
+    name: Verify Deployment
     runs-on: ubuntu-latest
     needs: [ deploy-staging, deploy-production ]
     if: always() && (needs.deploy-staging.result == 'success' || needs.deploy-production.result == 'success')
 
     steps:
-      - name: 🔍 Health Check
+      - name: Health Check
         run: |
-          echo "## ✅ Post-Deployment Verification" >> $GITHUB_STEP_SUMMARY
+          echo "## Post-Deployment Verification" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "⚠️ Add health check endpoints here" >> $GITHUB_STEP_SUMMARY
+          echo "Add health check endpoints here" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Example:" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY
