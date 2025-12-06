@@ -160,12 +160,15 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
+            # Semantic version from git tag (e.g., v1.2.3 -> 1.2.3)
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
             # Tag :dev for develop branch
             type=raw,value=dev,enable=${{ github.ref == 'refs/heads/develop' }}
             # Tag :latest for main branch
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
-            # Also tag with short SHA
-            type=sha,prefix=
+            # Also tag with commit SHA for traceability (format: abc1234)
+            type=sha,prefix=,format=short
 
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
@@ -176,4 +179,4 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
