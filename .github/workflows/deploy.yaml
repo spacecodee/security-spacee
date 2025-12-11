@@ -2,7 +2,8 @@
 # DEPLOY WORKFLOW - Deploy to Dokploy (Staging & Production)
 # ==============================================================================
 # Triggers on:
-#   - Manual trigger to deploy to Staging or Production via Dokploy
+#   - Manual trigger to deploy to Staging or Production via Dokploy (workflow_dispatch)
+#   - Automatic trigger after CI Pipeline completes on develop or main branches (workflow_run)
 #   - Requires valid Dokploy credentials in secrets
 # ==============================================================================
 
@@ -28,8 +29,6 @@ on:
         default: false
         type: boolean
 
-env: { }
-
 jobs:
   # ============================================================================
   # DETERMINE TRIGGER AND ENVIRONMENT
@@ -53,20 +52,29 @@ jobs:
 
           if [ "${{ github.event_name }}" = "workflow_run" ]; then
             # Auto-triggered by CI Pipeline
+            CI_CONCLUSION="${{ github.event.workflow_run.conclusion }}"
             BRANCH="${{ github.event.workflow_run.head_branch }}"
           
-            if [ "$BRANCH" = "main" ]; then
-              ENVIRONMENT="production"
-              # Check if production credentials are configured
-              if [ -n "${{ secrets.DOKPLOY_PRODUCTION_APPLICATION_ID }}" ]; then
-                SHOULD_DEPLOY="true"
+            echo "CI Pipeline conclusion: $CI_CONCLUSION"
+            echo "Branch: $BRANCH"
+          
+            # Only deploy if CI Pipeline succeeded
+            if [ "$CI_CONCLUSION" = "success" ]; then
+              if [ "$BRANCH" = "main" ]; then
+                ENVIRONMENT="production"
+                # Check if production credentials are configured
+                if [ -n "${{ secrets.DOKPLOY_PRODUCTION_APPLICATION_ID }}" ]; then
+                  SHOULD_DEPLOY="true"
+                fi
+              elif [ "$BRANCH" = "develop" ]; then
+                ENVIRONMENT="staging"
+                # Check if staging credentials are configured (develop deploys to staging)
+                if [ -n "${{ secrets.DOKPLOY_STAGING_APPLICATION_ID }}" ]; then
+                  SHOULD_DEPLOY="true"
+                fi
               fi
-            elif [ "$BRANCH" = "develop" ]; then
-              ENVIRONMENT="production"
-              # Check if production credentials are configured (develop also deploys to production)
-              if [ -n "${{ secrets.DOKPLOY_PRODUCTION_APPLICATION_ID }}" ]; then
-                SHOULD_DEPLOY="true"
-              fi
+            else
+              echo "Skipping deployment: CI Pipeline did not succeed (conclusion=$CI_CONCLUSION)"
             fi
           
             IS_MANUAL="false"
@@ -98,7 +106,7 @@ jobs:
     name: Deploy to Staging
     runs-on: ubuntu-latest
     needs: init
-    if: needs.init.outputs.is_manual == 'true' && needs.init.outputs.environment == 'staging' && needs.init.outputs.should_deploy == 'true'
+    if: needs.init.outputs.environment == 'staging' && needs.init.outputs.should_deploy == 'true'
     environment:
       name: staging
 
@@ -108,51 +116,48 @@ jobs:
 
       - name: Validate Dokploy Credentials
         run: |
-          if [ -z "${{ secrets.DOKPLOY_URL }}" ] || [ -z "${{ secrets.DOKPLOY_AUTH_TOKEN }}" ] || [ -z "${{ secrets.DOKPLOY_STAGING_APPLICATION_ID }}" ]; then
-            echo "Missing Dokploy credentials in secrets"
-            echo "Required secrets:"
-            echo "  - DOKPLOY_URL"
-            echo "  - DOKPLOY_AUTH_TOKEN"
-            echo "  - DOKPLOY_STAGING_APPLICATION_ID"
-            exit 1
-          fi
-          echo "All Dokploy credentials are configured"
+          export DOKPLOY_URL="${{ secrets.DOKPLOY_URL }}"
+          export DOKPLOY_AUTH_TOKEN="${{ secrets.DOKPLOY_AUTH_TOKEN }}"
+          export DOKPLOY_STAGING_APPLICATION_ID="${{ secrets.DOKPLOY_STAGING_APPLICATION_ID }}"
+          ./scripts/validate-dokploy-credentials.sh staging
 
       - name: Display Deployment Info
         run: |
+          # Determine trigger type
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            BRANCH="${{ github.event.workflow_run.head_branch }}"
+            TRIGGER="Automatic (CI Pipeline completed on $BRANCH)"
+          else
+            TRIGGER="Manual (workflow_dispatch)"
+          fi
+          
+          # Mask Dokploy URL: show only protocol and domain, hide path/query
+          DOKPLOY_URL_MASKED=$(echo "${{ secrets.DOKPLOY_URL }}" | sed -E 's#(https?://[^/]+)(/.*)?#\1/****#')
+          # Mask Application ID: show only last 4 chars (or full if shorter)
+          APP_ID="${{ secrets.DOKPLOY_STAGING_APPLICATION_ID }}"
+          if [ ${#APP_ID} -gt 4 ]; then
+            APP_ID_MASKED="****${APP_ID: -4}"
+          else
+            APP_ID_MASKED="$APP_ID"
+          fi
+          
           echo "## Staging Deployment Info" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Environment:** Staging" >> $GITHUB_STEP_SUMMARY
-          echo "- **Trigger:** Manual (workflow_dispatch)" >> $GITHUB_STEP_SUMMARY
-          echo "- **Dokploy URL:** ${{ secrets.DOKPLOY_URL }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Application ID:** ${{ secrets.DOKPLOY_STAGING_APPLICATION_ID }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trigger:** $TRIGGER" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dokploy URL:** ${DOKPLOY_URL_MASKED}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Application ID:** ${APP_ID_MASKED}" >> $GITHUB_STEP_SUMMARY
           echo "- **Dry Run:** ${{ github.event.inputs.dry_run }}" >> $GITHUB_STEP_SUMMARY
 
       - name: Trigger Dokploy Deployment
-        if: ${{ !github.event.inputs.dry_run }}
+        if: ${{ github.event_name == 'workflow_run' || (github.event_name == 'workflow_dispatch' && !github.event.inputs.dry_run) }}
         run: |
-          echo "Triggering Dokploy deployment for Staging..."
-          response=$(curl -fsS -X 'POST' \
-            '${{ secrets.DOKPLOY_URL }}/api/application.deploy' \
-            -H 'accept: application/json' \
-            -H 'Content-Type: application/json' \
-            -H 'x-api-key: ${{ secrets.DOKPLOY_AUTH_TOKEN }}' \
-            -d "{
-              \"applicationId\": \"${{ secrets.DOKPLOY_STAGING_APPLICATION_ID }}\"
-            }")
-
-          echo "Dokploy deployment response:"
-          echo "$response"
-
-          # Check if deployment was successful
-          if echo "$response" | grep -q "error" || echo "$response" | grep -q "failed"; then
-            echo "Deployment failed"
-            exit 1
-          fi
-          echo "Deployment triggered successfully"
+          export DOKPLOY_URL="${{ secrets.DOKPLOY_URL }}"
+          export DOKPLOY_AUTH_TOKEN="${{ secrets.DOKPLOY_AUTH_TOKEN }}"
+          ./scripts/deploy-dokploy.sh "${{ secrets.DOKPLOY_STAGING_APPLICATION_ID }}"
 
       - name: Dry Run Notice
-        if: ${{ github.event.inputs.dry_run }}
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run }}
         run: |
           echo "## Dry Run Mode" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -175,15 +180,10 @@ jobs:
 
       - name: Validate Dokploy Credentials
         run: |
-          if [ -z "${{ secrets.DOKPLOY_URL }}" ] || [ -z "${{ secrets.DOKPLOY_AUTH_TOKEN }}" ] || [ -z "${{ secrets.DOKPLOY_PRODUCTION_APPLICATION_ID }}" ]; then
-            echo "Missing Dokploy credentials in secrets"
-            echo "Required secrets:"
-            echo "  - DOKPLOY_URL"
-            echo "  - DOKPLOY_AUTH_TOKEN"
-            echo "  - DOKPLOY_PRODUCTION_APPLICATION_ID"
-            exit 1
-          fi
-          echo "All Dokploy credentials are configured"
+          export DOKPLOY_URL="${{ secrets.DOKPLOY_URL }}"
+          export DOKPLOY_AUTH_TOKEN="${{ secrets.DOKPLOY_AUTH_TOKEN }}"
+          export DOKPLOY_PRODUCTION_APPLICATION_ID="${{ secrets.DOKPLOY_PRODUCTION_APPLICATION_ID }}"
+          ./scripts/validate-dokploy-credentials.sh production
 
       - name: Production Confirmation
         run: |
@@ -193,6 +193,16 @@ jobs:
           else
             TRIGGER="Manual (workflow_dispatch)"
           fi
+          
+          # Mask Dokploy URL: show only protocol and domain, hide path/query
+          DOKPLOY_URL_MASKED=$(echo "${{ secrets.DOKPLOY_URL }}" | sed -E 's#(https?://[^/]+)(/.*)?#\1/****#')
+          # Mask Application ID: show only last 4 chars (or full if shorter)
+          APP_ID="${{ secrets.DOKPLOY_PRODUCTION_APPLICATION_ID }}"
+          if [ ${#APP_ID} -gt 4 ]; then
+            APP_ID_MASKED="****${APP_ID: -4}"
+          else
+            APP_ID_MASKED="$APP_ID"
+          fi
 
           echo "## Production Deployment Confirmation" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -200,32 +210,16 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Environment:** Production" >> $GITHUB_STEP_SUMMARY
           echo "- **Trigger:** $TRIGGER" >> $GITHUB_STEP_SUMMARY
-          echo "- **Dokploy URL:** ${{ secrets.DOKPLOY_URL }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Application ID:** ${{ secrets.DOKPLOY_PRODUCTION_APPLICATION_ID }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dokploy URL:** ${DOKPLOY_URL_MASKED}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Application ID:** ${APP_ID_MASKED}" >> $GITHUB_STEP_SUMMARY
           echo "- **Dry Run:** ${{ github.event.inputs.dry_run }}" >> $GITHUB_STEP_SUMMARY
 
       - name: Trigger Dokploy Deployment
-        if: ${{ github.event_name == 'workflow_run' || !github.event.inputs.dry_run }}
+        if: ${{ github.event_name == 'workflow_run' || (github.event_name == 'workflow_dispatch' && !github.event.inputs.dry_run) }}
         run: |
-          echo "Triggering Dokploy deployment for Production..."
-          response=$(curl -fsS -X 'POST' \
-            '${{ secrets.DOKPLOY_URL }}/api/application.deploy' \
-            -H 'accept: application/json' \
-            -H 'Content-Type: application/json' \
-            -H 'x-api-key: ${{ secrets.DOKPLOY_AUTH_TOKEN }}' \
-            -d "{
-              \"applicationId\": \"${{ secrets.DOKPLOY_PRODUCTION_APPLICATION_ID }}\"
-            }")
-
-          echo "Dokploy deployment response:"
-          echo "$response"
-
-          # Check if deployment was successful
-          if echo "$response" | grep -q "error" || echo "$response" | grep -q "failed"; then
-            echo "Deployment failed"
-            exit 1
-          fi
-          echo "Deployment triggered successfully"
+          export DOKPLOY_URL="${{ secrets.DOKPLOY_URL }}"
+          export DOKPLOY_AUTH_TOKEN="${{ secrets.DOKPLOY_AUTH_TOKEN }}"
+          ./scripts/deploy-dokploy.sh "${{ secrets.DOKPLOY_PRODUCTION_APPLICATION_ID }}"
 
       - name: Dry Run Notice
         if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run }}
