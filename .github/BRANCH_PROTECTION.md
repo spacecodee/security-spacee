@@ -1,55 +1,58 @@
-# 🐙 Branch Protection Rules - Security Spacee
+# Branch Protection Rules - Security Spacee
 
-Este documento describe las reglas de protección de ramas que deben configurarse en GitHub.
+This document describes the branch protection rules that must be configured in GitHub.
 
-## 📋 Configuración en GitHub
+> **📖 Note:** For the complete Git Workflow and development guide, see [
+`docs/GITFLOW_WORKFLOW.md`](../docs/GITFLOW_WORKFLOW.md). This document focuses on GitHub technical configuration.
 
-Ir a: **Settings → Branches → Add branch protection rule**
+## Configuration in GitHub
 
----
-
-## 🔒 Rama `main` (Producción)
-
-| Configuración                                              | Valor                                     |
-|------------------------------------------------------------|-------------------------------------------|
-| **Branch name pattern**                                    | `main`                                    |
-| **Require a pull request before merging**                  | ✅                                         |
-| **Required approvals**                                     | 1 (mínimo)                                |
-| **Dismiss stale PR approvals when new commits are pushed** | ✅                                         |
-| **Require review from code owners**                        | ✅ (opcional)                              |
-| **Require status checks to pass before merging**           | ✅                                         |
-| **Status checks required**                                 | `🏗️ Build & Test`, `🛡️ CodeQL Analysis` |
-| **Require branches to be up to date**                      | ✅                                         |
-| **Require conversation resolution**                        | ✅                                         |
-| **Require signed commits**                                 | ❌ (opcional)                              |
-| **Require linear history**                                 | ✅                                         |
-| **Do not allow bypassing**                                 | ✅                                         |
-| **Restrict who can push**                                  | Solo `release/*` y `hotfix/*` vía PR      |
-| **Allow force pushes**                                     | ❌                                         |
-| **Allow deletions**                                        | ❌                                         |
+Go to: **Settings → Branches → Add branch protection rule**
 
 ---
 
-## 🔒 Rama `develop` (Staging/Integración)
+## Branch `main` (Production)
 
-| Configuración                             | Valor              |
-|-------------------------------------------|--------------------|
-| **Branch name pattern**                   | `develop`          |
-| **Require a pull request before merging** | ✅                  |
-| **Required approvals**                    | 1                  |
-| **Dismiss stale PR approvals**            | ✅                  |
-| **Require status checks to pass**         | ✅                  |
-| **Status checks required**                | `🏗️ Build & Test` |
-| **Require branches to be up to date**     | ✅                  |
-| **Require conversation resolution**       | ✅                  |
-| **Allow force pushes**                    | ❌                  |
-| **Allow deletions**                       | ❌                  |
+| Configuration                                              | Value                                  |
+|------------------------------------------------------------|----------------------------------------|
+| **Branch name pattern**                                    | `main`                                 |
+| **Require a pull request before merging**                  | ✅                                      |
+| **Required approvals**                                     | 1 (minimum)                            |
+| **Dismiss stale PR approvals when new commits are pushed** | ✅                                      |
+| **Require review from code owners**                        | ✅ (optional)                           |
+| **Require status checks to pass before merging**           | ✅                                      |
+| **Status checks required**                                 | `Build & Test`, `CodeQL Analysis`      |
+| **Require branches to be up to date**                      | ✅                                      |
+| **Require conversation resolution**                        | ✅                                      |
+| **Require signed commits**                                 | ❌ (optional)                           |
+| **Require linear history**                                 | ✅                                      |
+| **Do not allow bypassing**                                 | ✅                                      |
+| **Restrict who can push**                                  | Only `release/*` and `hotfix/*` via PR |
+| **Allow force pushes**                                     | ❌                                      |
+| **Allow deletions**                                        | ❌                                      |
 
 ---
 
-## 📝 CODEOWNERS (Opcional)
+## Branch `develop` (Staging/Integration)
 
-Crear archivo `.github/CODEOWNERS`:
+| Configuration                             | Value          |
+|-------------------------------------------|----------------|
+| **Branch name pattern**                   | `develop`      |
+| **Require a pull request before merging** | ✅              |
+| **Required approvals**                    | 1              |
+| **Dismiss stale PR approvals**            | ✅              |
+| **Require status checks to pass**         | ✅              |
+| **Status checks required**                | `Build & Test` |
+| **Require branches to be up to date**     | ✅              |
+| **Require conversation resolution**       | ✅              |
+| **Allow force pushes**                    | ❌              |
+| **Allow deletions**                       | ❌              |
+
+---
+
+## CODEOWNERS (Optional)
+
+Create file `.github/CODEOWNERS`:
 
 ```
 # Default owners for everything
@@ -68,70 +71,70 @@ Crear archivo `.github/CODEOWNERS`:
 
 ---
 
-## 🏷️ Environments (GitHub Environments)
+## Environments (GitHub Environments)
 
 ### Staging
 
 - **URL**: https://staging.security-spacee.example.com
 - **Protection rules**:
     - Wait timer: 0 minutes
-    - Required reviewers: Ninguno (auto-deploy en develop)
+    - Required reviewers: None (auto-deploy on develop)
 
 ### Production
 
 - **URL**: https://security-spacee.example.com
 - **Protection rules**:
     - Wait timer: 5 minutes
-    - Required reviewers: 1 persona
+    - Required reviewers: 1 person
     - Branch: `main` only
 
 ---
 
-## 🔑 Secrets Requeridos
+## Required Secrets
 
-Configurar en **Settings → Secrets and variables → Actions**:
+Configure in **Settings → Secrets and variables → Actions**:
 
 ### Repository Secrets
 
-| Secret                        | Descripción | Requerido para |
-|-------------------------------|-------------|----------------|
-| `GITHUB_TOKEN`                | Automático  | Todos          |
-| (Ninguno adicional por ahora) | -           | -              |
+| Secret                         | Description | Required for  |
+|--------------------------------|-------------|---------------|
+| `GITHUB_TOKEN`                 | Automatic   | All workflows |
+| (None additional at this time) | -           | -             |
 
 ### Environment Secrets (Production)
 
-| Secret           | Descripción              |
-|------------------|--------------------------|
-| `DB_PASSWORD`    | Contraseña de PostgreSQL |
-| `JWT_SECRET`     | Clave secreta JWT        |
-| `REDIS_PASSWORD` | Contraseña de Redis      |
+| Secret           | Description         |
+|------------------|---------------------|
+| `DB_PASSWORD`    | PostgreSQL password |
+| `JWT_SECRET`     | JWT secret key      |
+| `REDIS_PASSWORD` | Redis password      |
 
 ---
 
-## 🚀 Flujo de Trabajo Completo
+## Complete Workflow
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                           DESARROLLO                                 │
+│                           DEVELOPMENT                                │
 ├─────────────────────────────────────────────────────────────────────┤
 │  1. git checkout develop                                            │
 │  2. git checkout -b feat/auth/login-logic                          │
-│  3. ... hacer cambios ...                                           │
+│  3. ... make changes ...                                            │
 │  4. git commit -m "feat(auth): add login validation"               │
 │  5. git push origin feat/auth/login-logic                          │
-│  6. Crear PR → develop                                              │
-│  7. CI Pipeline corre automáticamente                               │
+│  6. Create PR → develop                                             │
+│  7. CI Pipeline runs automatically                                  │
 │  8. Review + Approve                                                │
-│  9. Merge a develop                                                 │
+│  9. Merge to develop                                                │
 └─────────────────────────────────────────────────────────────────────┘
                                  │
                                  ▼
 ┌─────────────────────────────────────────────────────────────────────┐
 │                            STAGING                                   │
 ├─────────────────────────────────────────────────────────────────────┤
-│  • develop branch se despliega automáticamente a staging            │
-│  • Testing manual / QA                                              │
-│  • Security scans semanales                                         │
+│  • develop branch auto-deploys to staging                           │
+│  • Manual QA testing                                                │
+│  • Weekly security scans                                            │
 └─────────────────────────────────────────────────────────────────────┘
                                  │
                                  ▼
@@ -140,10 +143,10 @@ Configurar en **Settings → Secrets and variables → Actions**:
 ├─────────────────────────────────────────────────────────────────────┤
 │  1. git checkout develop                                            │
 │  2. git checkout -b release/1.0.0                                  │
-│  3. Bump version, changelog updates                                 │
-│  4. Crear PR → main                                                 │
+│  3. Bump version, update changelog                                  │
+│  4. Create PR → main                                                │
 │  5. Review + Approve                                                │
-│  6. Merge a main                                                    │
+│  6. Merge to main                                                   │
 │  7. git tag v1.0.0                                                  │
 │  8. git push origin v1.0.0                                          │
 │  9. Release workflow builds + pushes Docker image                   │
@@ -155,39 +158,43 @@ Configurar en **Settings → Secrets and variables → Actions**:
 ├─────────────────────────────────────────────────────────────────────┤
 │  • Manual deploy via GitHub Actions (Deploy workflow)               │
 │  • Requires approval in GitHub Environments                         │
-│  • Health checks post-deploy                                        │
+│  • Post-deploy health checks                                        │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## ⚡ Comandos Útiles
+## Useful Commands
 
 ```bash
-# Crear feature branch
+# Create feature branch
 git checkout develop
 git pull origin develop
 git checkout -b feat/user/registration
 
-# Crear release
+# Create release
 git checkout develop
 git pull origin develop
 git checkout -b release/1.0.0
 # ... bump versions ...
 git push origin release/1.0.0
-# Crear PR a main
+# Create PR to main
 
-# Crear tag después de merge a main
+# Tag after merge to main
 git checkout main
 git pull origin main
 git tag -a v1.0.0 -m "Release v1.0.0"
 git push origin v1.0.0
 
-# Hotfix (bug crítico en producción)
+# Hotfix (critical production bug)
 git checkout main
 git pull origin main
 git checkout -b hotfix/1.0.1
 # ... fix bug ...
 git push origin hotfix/1.0.1
-# Crear PR a main Y a develop
+# Create PR to both main and develop
 ```
+
+---
+
+**Last updated:** December 2025
