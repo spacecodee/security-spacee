@@ -148,10 +148,33 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Determine TruffleHog Base and Head
+        id: trufflehog-refs
+        run: |
+          # For pull requests, compare against the base branch
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "base=${{ github.event.pull_request.base.sha }}" >> $GITHUB_OUTPUT
+            echo "head=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
+          # For push events, compare against the previous commit
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            # If this is a new branch, scan the entire commit
+            if [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
+              echo "base=" >> $GITHUB_OUTPUT
+              echo "head=${{ github.sha }}" >> $GITHUB_OUTPUT
+            else
+              echo "base=${{ github.event.before }}" >> $GITHUB_OUTPUT
+              echo "head=${{ github.sha }}" >> $GITHUB_OUTPUT
+            fi
+          # For manual triggers (workflow_dispatch), scan the entire commit
+          else
+            echo "base=" >> $GITHUB_OUTPUT
+            echo "head=${{ github.sha }}" >> $GITHUB_OUTPUT
+          fi
+
       - name: TruffleHog Secret Scan
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
-          base: ${{ github.event.repository.default_branch }}
-          head: HEAD
+          base: ${{ steps.trufflehog-refs.outputs.base }}
+          head: ${{ steps.trufflehog-refs.outputs.head }}
           extra_args: --only-verified
