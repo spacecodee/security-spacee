@@ -123,6 +123,14 @@ jobs:
 
       - name: Display Deployment Info
         run: |
+          # Determine trigger type
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            BRANCH="${{ github.event.workflow_run.head_branch }}"
+            TRIGGER="Automatic (CI Pipeline completed on $BRANCH)"
+          else
+            TRIGGER="Manual (workflow_dispatch)"
+          fi
+          
           # Mask Dokploy URL: show only protocol and domain, hide path/query
           DOKPLOY_URL_MASKED=$(echo "${{ secrets.DOKPLOY_URL }}" | sed -E 's#(https?://[^/]+).*#\1/****#')
           # Mask Application ID: show only last 4 chars
@@ -132,20 +140,20 @@ jobs:
           echo "## Staging Deployment Info" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Environment:** Staging" >> $GITHUB_STEP_SUMMARY
-          echo "- **Trigger:** Manual (workflow_dispatch)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trigger:** $TRIGGER" >> $GITHUB_STEP_SUMMARY
           echo "- **Dokploy URL:** ${DOKPLOY_URL_MASKED}" >> $GITHUB_STEP_SUMMARY
           echo "- **Application ID:** ${APP_ID_MASKED}" >> $GITHUB_STEP_SUMMARY
           echo "- **Dry Run:** ${{ github.event.inputs.dry_run }}" >> $GITHUB_STEP_SUMMARY
 
       - name: Trigger Dokploy Deployment
-        if: ${{ !github.event.inputs.dry_run }}
+        if: ${{ github.event_name == 'workflow_run' || !github.event.inputs.dry_run }}
         run: |
           export DOKPLOY_URL="${{ secrets.DOKPLOY_URL }}"
           export DOKPLOY_AUTH_TOKEN="${{ secrets.DOKPLOY_AUTH_TOKEN }}"
           ./scripts/deploy-dokploy.sh "${{ secrets.DOKPLOY_STAGING_APPLICATION_ID }}"
 
       - name: Dry Run Notice
-        if: ${{ github.event.inputs.dry_run }}
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run }}
         run: |
           echo "## Dry Run Mode" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
