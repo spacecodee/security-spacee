@@ -106,6 +106,60 @@ Each feature is completely self-contained within its bounded context folder, fol
 ./gradlew test --tests "*Integration*"  # Integration tests
 ```
 
+## 🌳 Git Workflow (GitFlow)
+
+This project follows **GitFlow** branching strategy, the industry-standard for professional software development:
+
+- **`main`** - Production branch, only receives releases & hotfixes (protected)
+- **`develop`** - Integration branch, receives all features & bugfixes
+- **`feat/*`** - Feature branches (created from develop, merged back via PR)
+- **`fix/*`** - Bugfix branches (created from develop, merged back via PR)
+- **`release/*`** - Release branches (created from develop, merged to main + develop)
+- **`hotfix/*`** - Emergency fixes (created from main, merged to main + develop)
+
+### Quick Start with Features
+
+```bash
+# Start a new feature
+git checkout develop
+git pull origin develop
+git checkout -b feat/auth/add-mfa
+
+# Make changes and commit
+git add .
+git commit -m "feat(auth): implement multi-factor authentication"
+git push origin feat/auth/add-mfa
+
+# Create PR on GitHub (feat → develop)
+# Once approved, merge to develop
+```
+
+### Release Process
+
+```bash
+# Create release branch
+git checkout develop
+git pull origin develop
+git checkout -b release/1.2.0
+git push origin release/1.2.0
+
+# Create PR: release/1.2.0 → main
+# Once merged to main:
+git checkout main
+git pull origin main
+git tag -a v1.2.0 -m "Release 1.2.0"
+git push origin v1.2.0
+
+# Merge back to develop
+git checkout develop
+git merge main
+git push origin develop
+```
+
+**For comprehensive GitFlow documentation, see:** [`docs/GITFLOW_WORKFLOW.md`](docs/GITFLOW_WORKFLOW.md)
+
+**For branch protection configuration details, see:** [`.github/BRANCH_PROTECTION.md`](.github/BRANCH_PROTECTION.md)
+
 ## 🐳 Docker & Deployment
 
 ### Development (Compose)
