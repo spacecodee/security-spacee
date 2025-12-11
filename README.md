@@ -2,6 +2,8 @@
 
 Java 25 & Spring Boot 4 enterprise-grade application following **Hexagonal Architecture + Vertical Slicing** patterns.
 
+> **Status:** Deploying with Dokploy GitHub Actions integration ✅
+
 ## 🎯 Quick Start
 
 ### Prerequisites
@@ -134,7 +136,7 @@ cp .env.example .env
 Key environment variables:
 
 | Variable                            | Description              | Example               |
-|-------------------------------------|--------------------------|-----------------------|
+| ----------------------------------- | ------------------------ | --------------------- |
 | `DB_HOST`                           | PostgreSQL host          | `localhost`           |
 | `DB_PORT`                           | PostgreSQL port          | `5432`                |
 | `DB_NAME`                           | Database name            | `security_spacee_db`  |
@@ -186,7 +188,7 @@ runtimeOnly 'io.netty:netty-resolver-dns-native-macos:4.2.7.Final:osx-x86_64'
 ```
 
 | Your System                    | Classifier to Use                |
-|--------------------------------|----------------------------------|
+| ------------------------------ | -------------------------------- |
 | macOS Intel                    | `osx-x86_64`                     |
 | macOS Apple Silicon (M1/M2/M3) | `osx-aarch_64`                   |
 | Linux / Windows                | **Remove the entire dependency** |
