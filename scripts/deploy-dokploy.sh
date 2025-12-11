@@ -32,7 +32,9 @@ if ! command -v jq &> /dev/null; then
 fi
 
 echo "Triggering Dokploy deployment..."
-echo "Application ID: ${APPLICATION_ID:0:8}****"
+# Mask Application ID: show only last 4 chars
+APP_ID_MASKED="****${APPLICATION_ID: -4}"
+echo "Application ID: ${APP_ID_MASKED}"
 
 # Trigger deployment via Dokploy API
 response=$(curl -fsS -X 'POST' \

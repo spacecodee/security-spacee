@@ -132,10 +132,14 @@ jobs:
           fi
           
           # Mask Dokploy URL: show only protocol and domain, hide path/query
-          DOKPLOY_URL_MASKED=$(echo "${{ secrets.DOKPLOY_URL }}" | sed -E 's#(https?://[^/]+).*#\1/****#')
-          # Mask Application ID: show only last 4 chars
+          DOKPLOY_URL_MASKED=$(echo "${{ secrets.DOKPLOY_URL }}" | sed -E 's#(https?://[^/]+)(/.*)?#\1/****#')
+          # Mask Application ID: show only last 4 chars (or full if shorter)
           APP_ID="${{ secrets.DOKPLOY_STAGING_APPLICATION_ID }}"
-          APP_ID_MASKED="****${APP_ID: -4}"
+          if [ ${#APP_ID} -gt 4 ]; then
+            APP_ID_MASKED="****${APP_ID: -4}"
+          else
+            APP_ID_MASKED="$APP_ID"
+          fi
           
           echo "## Staging Deployment Info" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -191,10 +195,14 @@ jobs:
           fi
           
           # Mask Dokploy URL: show only protocol and domain, hide path/query
-          DOKPLOY_URL_MASKED=$(echo "${{ secrets.DOKPLOY_URL }}" | sed -E 's#(https?://[^/]+).*#\1/****#')
-          # Mask Application ID: show only last 4 chars
+          DOKPLOY_URL_MASKED=$(echo "${{ secrets.DOKPLOY_URL }}" | sed -E 's#(https?://[^/]+)(/.*)?#\1/****#')
+          # Mask Application ID: show only last 4 chars (or full if shorter)
           APP_ID="${{ secrets.DOKPLOY_PRODUCTION_APPLICATION_ID }}"
-          APP_ID_MASKED="****${APP_ID: -4}"
+          if [ ${#APP_ID} -gt 4 ]; then
+            APP_ID_MASKED="****${APP_ID: -4}"
+          else
+            APP_ID_MASKED="$APP_ID"
+          fi
 
           echo "## Production Deployment Confirmation" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
