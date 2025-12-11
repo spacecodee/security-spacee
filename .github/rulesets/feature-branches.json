@@ -1,0 +1,38 @@
+{
+  "name": "feature-branches",
+  "target": "branch",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": {
+      "include": [
+        "refs/heads/feat/**",
+        "refs/heads/fix/**",
+        "refs/heads/feature/**"
+      ],
+      "exclude": []
+    }
+  },
+  "rules": [
+    {
+      "type": "creation"
+    },
+    {
+      "type": "update",
+      "parameters": {
+        "update_allows_fetch_and_merge": true
+      }
+    },
+    {
+      "type": "required_status_checks",
+      "parameters": {
+        "strict_required_status_checks_policy": false,
+        "required_status_checks": [
+          {
+            "context": "Build & Test"
+          }
+        ]
+      }
+    }
+  ],
+  "bypass_actors": []
+}

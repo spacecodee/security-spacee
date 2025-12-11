@@ -2,6 +2,8 @@
 
 Java 25 & Spring Boot 4 enterprise-grade application following **Hexagonal Architecture + Vertical Slicing** patterns.
 
+> **Status:** Deploying with Dokploy GitHub Actions integration ✅
+
 ## 🎯 Quick Start
 
 ### Prerequisites
@@ -120,6 +122,72 @@ docker-compose down -v                  # Stop and remove volumes
 docker build -t security-spacee:1.0 .   # Build image
 docker run -p 8080:8080 security-spacee:1.0  # Run container
 ```
+
+### Automatic Deployment with Dokploy
+
+This project integrates with **Dokploy** for automated deployment from GitHub Actions. When code is pushed to the
+`develop` or `main` branches, the CI/CD pipeline automatically builds a Docker image, pushes it to GitHub Container
+Registry (GHCR), and triggers a deployment through Dokploy.
+
+#### How It Works
+
+1. **Code Push** → Push to `develop` (staging) or `main` (production)
+2. **CI Pipeline Starts** → GitHub Actions runs tests and builds Docker image
+3. **Image Push** → Docker image is pushed to `ghcr.io/spacecodee/security-spacee:{tag}`
+    - `develop` branch → `:dev` tag
+    - `main` branch → `:latest` and semantic version tags (e.g., `:1.0.0`)
+4. **Dokploy Deployment** → Official Dokploy GitHub Action is triggered
+5. **Container Pull & Deploy** → Dokploy pulls the image from GHCR and deploys it
+
+#### Required GitHub Secrets
+
+The Dokploy integration requires three secrets configured in the GitHub repository (Settings → Secrets and variables →
+Actions):
+
+| Secret                   | Description                                        | Example                       |
+|--------------------------|----------------------------------------------------|-------------------------------|
+| `DOKPLOY_URL`            | Dokploy API base URL (no trailing slash)           | `https://dokploy.example.com` |
+| `DOKPLOY_APPLICATION_ID` | Application ID from Dokploy (project/container ID) | `OIGwUv0XWj8xx_KHCx_XX`       |
+| `DOKPLOY_AUTH_TOKEN`     | Dokploy API authentication token                   | `token-xxx-yyy-zzz`           |
+
+#### Finding Your Dokploy Application ID
+
+To get the correct `DOKPLOY_APPLICATION_ID`:
+
+1. Access Dokploy Swagger API documentation:
+   ```
+   https://{DOKPLOY_URL}/api/project.one?projectId={YOUR_PROJECT_ID}
+   ```
+
+2. Or use the Dokploy dashboard to view your application/container ID in the deployment configuration.
+
+#### Verifying Deployment Status
+
+After pushing code to `develop` or `main`:
+
+1. Go to your GitHub repository → **Actions** tab
+2. Find the latest workflow run
+3. Check the **Docker Build & Push** job (verifies image is pushed to GHCR)
+4. Check the **Trigger Dokploy Deployment** job (verifies deployment was triggered)
+5. Visit your Dokploy dashboard to confirm the container is running with the new image
+
+#### Workflow Configuration
+
+The deployment workflow is defined in `.github/workflows/ci.yaml`:
+
+- Runs on pushes to `develop` and `main` branches
+- Builds and pushes Docker image with semantic versioning
+- Triggers Dokploy deployment with the new image
+- Uses `benbristow/dokploy-deploy-action@0.0.1` for deployment
+
+#### Troubleshooting
+
+| Issue                             | Solution                                                      |
+|-----------------------------------|---------------------------------------------------------------|
+| `Unauthorized` error from Dokploy | Verify `DOKPLOY_AUTH_TOKEN` is correct and valid              |
+| Deployment not triggering         | Check GitHub Actions workflow logs for error details          |
+| Image not pulling                 | Verify Dokploy has access to GHCR (GitHub Container Registry) |
+| Wrong version deployed            | Confirm correct `DOKPLOY_APPLICATION_ID` is configured        |
 
 ## ⚙️ Environment Configuration
 
