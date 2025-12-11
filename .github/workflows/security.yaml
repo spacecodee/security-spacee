@@ -148,10 +148,39 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Determine TruffleHog Base and Head
+        id: trufflehog-refs
+        run: |
+          # For pull requests, compare against the base branch
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "base=${{ github.event.pull_request.base.sha }}" >> $GITHUB_OUTPUT
+            echo "head=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
+          # For push events, compare against the previous commit
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            # Detect new branch by checking if 'before' is all zeros (GitHub convention)
+            if [[ "${{ github.event.before }}" =~ ^0+$ ]]; then
+              # New branch: compare against the previous commit for efficiency
+              echo "base=HEAD~1" >> $GITHUB_OUTPUT
+              echo "head=${{ github.sha }}" >> $GITHUB_OUTPUT
+            else
+              # Existing branch: compare against previous commit
+              echo "base=${{ github.event.before }}" >> $GITHUB_OUTPUT
+              echo "head=${{ github.sha }}" >> $GITHUB_OUTPUT
+            fi
+          # For scheduled runs (schedule) and manual triggers (workflow_dispatch), scan only recent commits
+          elif [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "base=HEAD~1" >> $GITHUB_OUTPUT
+            echo "head=${{ github.sha }}" >> $GITHUB_OUTPUT
+          else
+            # Fallback for unknown event types
+            echo "base=" >> $GITHUB_OUTPUT
+            echo "head=${{ github.sha }}" >> $GITHUB_OUTPUT
+          fi
+
       - name: TruffleHog Secret Scan
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
-          base: ${{ github.event.repository.default_branch }}
-          head: HEAD
+          base: ${{ steps.trufflehog-refs.outputs.base }}
+          head: ${{ steps.trufflehog-refs.outputs.head }}
           extra_args: --only-verified
