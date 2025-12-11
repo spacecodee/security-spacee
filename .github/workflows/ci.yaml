@@ -184,11 +184,13 @@ jobs:
       - name: Trigger Dokploy Deployment
         if: success() && github.ref == 'refs/heads/develop'
         run: |
-          curl -X 'POST' \
+          response=$(curl -fsS -X 'POST' \
             '${{ secrets.DOKPLOY_URL }}/api/application.deploy' \
             -H 'accept: application/json' \
             -H 'Content-Type: application/json' \
             -H 'x-api-key: ${{ secrets.DOKPLOY_AUTH_TOKEN }}' \
             -d "{
               \"applicationId\": \"${{ secrets.DOKPLOY_APPLICATION_ID }}\"
-            }"
+            }")
+          echo "Dokploy deployment response:"
+          echo "$response"
