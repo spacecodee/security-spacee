@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # ==============================================================================
 # Script: deploy-dokploy.sh
 # Description: Triggers deployment via Dokploy API with proper error handling
@@ -47,7 +47,7 @@ response=$(curl -fsS -X 'POST' \
 echo "Dokploy API response received"
 
 # Parse JSON response and check for errors using jq
-if echo "$response" | jq -e '.error // empty' >/dev/null 2>&1; then
+if echo "$response" | jq -e 'has("error") and (.error != null and .error != "")' >/dev/null 2>&1; then
   error_message=$(echo "$response" | jq -r '.error // "Unknown error"')
   echo "Deployment failed: $error_message"
   exit 1

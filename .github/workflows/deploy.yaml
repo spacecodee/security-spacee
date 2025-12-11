@@ -146,7 +146,7 @@ jobs:
           echo "- **Dry Run:** ${{ github.event.inputs.dry_run }}" >> $GITHUB_STEP_SUMMARY
 
       - name: Trigger Dokploy Deployment
-        if: ${{ github.event_name == 'workflow_run' || !github.event.inputs.dry_run }}
+        if: ${{ github.event_name == 'workflow_run' || (github.event_name == 'workflow_dispatch' && !github.event.inputs.dry_run) }}
         run: |
           export DOKPLOY_URL="${{ secrets.DOKPLOY_URL }}"
           export DOKPLOY_AUTH_TOKEN="${{ secrets.DOKPLOY_AUTH_TOKEN }}"
@@ -207,7 +207,7 @@ jobs:
           echo "- **Dry Run:** ${{ github.event.inputs.dry_run }}" >> $GITHUB_STEP_SUMMARY
 
       - name: Trigger Dokploy Deployment
-        if: ${{ github.event_name == 'workflow_run' || !github.event.inputs.dry_run }}
+        if: ${{ github.event_name == 'workflow_run' || (github.event_name == 'workflow_dispatch' && !github.event.inputs.dry_run) }}
         run: |
           export DOKPLOY_URL="${{ secrets.DOKPLOY_URL }}"
           export DOKPLOY_AUTH_TOKEN="${{ secrets.DOKPLOY_AUTH_TOKEN }}"

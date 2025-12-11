@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # ==============================================================================
 # Script: validate-dokploy-credentials.sh
 # Description: Validates that all required Dokploy credentials are configured
