@@ -157,16 +157,22 @@ jobs:
             echo "head=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
           # For push events, compare against the previous commit
           elif [ "${{ github.event_name }}" = "push" ]; then
-            # If this is a new branch, scan the entire commit
-            if [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
-              echo "base=" >> $GITHUB_OUTPUT
+            # Detect new branch by checking if 'before' is all zeros (GitHub convention)
+            if [[ "${{ github.event.before }}" =~ ^0+$ ]]; then
+              # New branch: compare against the previous commit for efficiency
+              echo "base=HEAD~1" >> $GITHUB_OUTPUT
               echo "head=${{ github.sha }}" >> $GITHUB_OUTPUT
             else
+              # Existing branch: compare against previous commit
               echo "base=${{ github.event.before }}" >> $GITHUB_OUTPUT
               echo "head=${{ github.sha }}" >> $GITHUB_OUTPUT
             fi
-          # For manual triggers (workflow_dispatch), scan the entire commit
+          # For scheduled runs (schedule) and manual triggers (workflow_dispatch), scan only recent commits
+          elif [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "base=HEAD~1" >> $GITHUB_OUTPUT
+            echo "head=${{ github.sha }}" >> $GITHUB_OUTPUT
           else
+            # Fallback for unknown event types
             echo "base=" >> $GITHUB_OUTPUT
             echo "head=${{ github.sha }}" >> $GITHUB_OUTPUT
           fi
