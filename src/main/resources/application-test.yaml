@@ -27,9 +27,8 @@ spring:
   # ===========================================================================
   jpa:
     hibernate:
-      ddl-auto: create-drop  # Recreate schema for each test run
-    show-sql: false          # Set to true for debugging
-    database-platform: org.hibernate.dialect.H2Dialect
+      ddl-auto: create-drop
+    show-sql: false
     properties:
       hibernate:
         "[format_sql]": true

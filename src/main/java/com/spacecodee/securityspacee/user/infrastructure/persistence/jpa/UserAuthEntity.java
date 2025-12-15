@@ -45,7 +45,7 @@ public class UserAuthEntity {
     private String email;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "user_type", nullable = false, columnDefinition = "user_type_enum")
+    @Column(name = "user_type", nullable = false)
     private UserType userType;
 
     @Column(name = "is_active", nullable = false)
