@@ -68,7 +68,7 @@ jobs:
         run: ./gradlew test --no-daemon --stacktrace
 
       - name: Upload Test Results
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: test-results
@@ -81,7 +81,7 @@ jobs:
         run: ./gradlew bootJar -x test --no-daemon
 
       - name: Upload JAR Artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: application-jar
           path: build/libs/*.jar
