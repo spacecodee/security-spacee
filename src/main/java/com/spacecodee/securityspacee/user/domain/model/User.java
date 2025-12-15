@@ -17,7 +17,7 @@ import lombok.Getter;
 @Getter
 public final class User {
 
-    private final Long userId;
+    private final Integer userId;
     private final Username username;
     private final Email email;
     private final Password password;

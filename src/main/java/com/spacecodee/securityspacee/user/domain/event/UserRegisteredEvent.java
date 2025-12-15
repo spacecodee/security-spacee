@@ -10,13 +10,13 @@ import lombok.Getter;
 @Getter
 public final class UserRegisteredEvent {
 
-    private final Long userId;
+    private final Integer userId;
     private final String username;
     private final String email;
     private final UserType userType;
     private final Instant occurredOn;
 
-    public UserRegisteredEvent(Long userId, String username, String email, UserType userType) {
+    public UserRegisteredEvent(Integer userId, String username, String email, UserType userType) {
         this.userId = Objects.requireNonNull(userId);
         this.username = Objects.requireNonNull(username);
         this.email = Objects.requireNonNull(email);

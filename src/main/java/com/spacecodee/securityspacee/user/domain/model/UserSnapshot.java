@@ -11,7 +11,7 @@ import com.spacecodee.securityspacee.user.domain.valueobject.UserType;
 import com.spacecodee.securityspacee.user.domain.valueobject.Username;
 
 public record UserSnapshot(
-        Long userId,
+        Integer userId,
         Username username,
         Email email,
         Password password,
@@ -27,7 +27,7 @@ public record UserSnapshot(
 
     @Contract("_, _, _, _, _, _, _, _, _, _, _, _, _ -> new")
     public static @NonNull UserSnapshot of(
-            Long userId,
+            Integer userId,
             Username username,
             Email email,
             Password password,

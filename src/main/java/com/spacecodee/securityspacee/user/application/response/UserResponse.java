@@ -5,7 +5,7 @@ import java.time.Instant;
 import com.spacecodee.securityspacee.user.domain.valueobject.UserType;
 
 public record UserResponse(
-        Long userId,
+        Integer userId,
         String username,
         String email,
         UserType userType,
