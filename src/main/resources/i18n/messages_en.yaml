@@ -1,0 +1,65 @@
+user:
+  register:
+    success: "User registered successfully"
+  email:
+    welcome:
+      subject: "Welcome to Security Spacee!"
+      greeting: "Hello {0},"
+      body: "Thank you for registering with Security Spacee. Your account has been successfully created."
+      footer: "Best regards, The Security Spacee Team"
+    password_reset:
+      subject: "Password Reset Request"
+      greeting: "Hello {0},"
+      body: "You requested a password reset. Use the following token: {1}"
+      footer: "If you did not request this, please ignore this email."
+    verification:
+      subject: "Email Verification"
+      greeting: "Hello {0},"
+      body: "Please verify your email address using the following token: {1}"
+      footer: "Thank you for using Security Spacee."
+  validation:
+    username:
+      required: "Username is required"
+      blank: "Username cannot be blank"
+      invalid_format: "Username must contain only alphanumeric characters and underscores"
+      min_length: "Username must be at least 3 characters long"
+      max_length: "Username must not exceed 50 characters"
+      invalid_boundaries: "Username cannot start or end with an underscore"
+    email:
+      required: "Email is required"
+      blank: "Email cannot be blank"
+      invalid_format: "Invalid email format (RFC 5322)"
+      max_length: "Email must not exceed 255 characters"
+    password:
+      required: "Password is required"
+      blank: "Password cannot be blank"
+      min_length: "Password must be at least 8 characters long"
+      max_length: "Password must not exceed 128 characters"
+    profile:
+      first_name_required: "First name is required for HUMAN users"
+      last_name_required: "Last name is required for HUMAN users"
+      first_name_max_length: "First name must not exceed 100 characters"
+      last_name_max_length: "Last name must not exceed 100 characters"
+      phone_max_length: "Phone number must not exceed 20 characters"
+      bio_max_length: "Bio must not exceed 500 characters"
+      date_of_birth_past: "Date of birth must be in the past"
+  exception:
+    duplicate_username: "Username '{0}' already exists in the system"
+    duplicate_email: "Email '{0}' already exists in the system"
+    invalid_user_data: "Invalid user data: {0}"
+    human_profile_required: "HUMAN users must have a UserProfile"
+    non_human_profile_forbidden: "{0} users cannot have a UserProfile"
+    max_login_attempts_reached: "Maximum login attempts reached. Account will be locked."
+    not_found:
+      id: "User not found with ID: {0}"
+
+validation:
+  error:
+    title: "Validation Error"
+    detail: "One or more fields have validation errors"
+    invalid_argument: "Invalid Argument"
+
+error:
+  internal:
+    title: "Internal Server Error"
+    detail: "An unexpected error occurred. Please contact support."
