@@ -29,6 +29,9 @@ public final class UserPersistenceMapperImpl implements IUserPersistenceMapper {
                 .userType(user.getUserType())
                 .isActive(user.isActive())
                 .emailVerified(user.isEmailVerified())
+                .failedLoginAttempts(user.getFailedLoginAttempts())
+                .lockedUntil(user.getLockedUntil())
+                .lastLoginAt(user.getLastLoginAt())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .build();
@@ -86,6 +89,9 @@ public final class UserPersistenceMapperImpl implements IUserPersistenceMapper {
                 entity.isActive(),
                 entity.isEmailVerified(),
                 profile,
+                entity.getFailedLoginAttempts(),
+                entity.getLockedUntil(),
+                entity.getLastLoginAt(),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt());
 

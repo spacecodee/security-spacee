@@ -25,6 +25,9 @@ public final class User {
     private final boolean isActive;
     private final boolean emailVerified;
     private final UserProfile profile;
+    private final int failedLoginAttempts;
+    private final Instant lockedUntil;
+    private final Instant lastLoginAt;
     private final Instant createdAt;
     private final Instant updatedAt;
 
@@ -37,6 +40,9 @@ public final class User {
         this.isActive = snapshot.isActive();
         this.emailVerified = snapshot.emailVerified();
         this.profile = snapshot.profile();
+        this.failedLoginAttempts = snapshot.failedLoginAttempts();
+        this.lockedUntil = snapshot.lockedUntil();
+        this.lastLoginAt = snapshot.lastLoginAt();
         this.createdAt = snapshot.createdAt() != null ? snapshot.createdAt() : Instant.now();
         this.updatedAt = snapshot.updatedAt() != null ? snapshot.updatedAt() : Instant.now();
 
@@ -57,7 +63,8 @@ public final class User {
             UserType userType,
             UserProfile profile) {
         UserSnapshot snapshot = new UserSnapshot(
-                null, username, email, password, userType, true, false, profile, Instant.now(), Instant.now());
+                null, username, email, password, userType, true, false, profile,
+                0, null, null, Instant.now(), Instant.now());
         return new User(snapshot);
     }
 
@@ -70,7 +77,8 @@ public final class User {
     public @NonNull User deactivate() {
         UserSnapshot snapshot = new UserSnapshot(
                 this.userId, this.username, this.email, this.password, this.userType,
-                false, this.emailVerified, this.profile, this.createdAt, Instant.now());
+                false, this.emailVerified, this.profile, this.failedLoginAttempts,
+                this.lockedUntil, this.lastLoginAt, this.createdAt, Instant.now());
         return new User(snapshot);
     }
 
@@ -78,7 +86,8 @@ public final class User {
     public @NonNull User verifyEmail() {
         UserSnapshot snapshot = new UserSnapshot(
                 this.userId, this.username, this.email, this.password, this.userType,
-                this.isActive, true, this.profile, this.createdAt, Instant.now());
+                this.isActive, true, this.profile, this.failedLoginAttempts,
+                this.lockedUntil, this.lastLoginAt, this.createdAt, Instant.now());
         return new User(snapshot);
     }
 
@@ -86,8 +95,56 @@ public final class User {
     public @NonNull User changePassword(Password newPassword) {
         UserSnapshot snapshot = new UserSnapshot(
                 this.userId, this.username, this.email, newPassword, this.userType,
-                this.isActive, this.emailVerified, this.profile, this.createdAt, Instant.now());
+                this.isActive, this.emailVerified, this.profile, this.failedLoginAttempts,
+                this.lockedUntil, this.lastLoginAt, this.createdAt, Instant.now());
         return new User(snapshot);
+    }
+
+    @Contract(" -> new")
+    public @NonNull User recordSuccessfulLogin() {
+        UserSnapshot snapshot = new UserSnapshot(
+                this.userId, this.username, this.email, this.password, this.userType,
+                this.isActive, this.emailVerified, this.profile,
+                0, null, Instant.now(), this.createdAt, Instant.now());
+        return new User(snapshot);
+    }
+
+    @Contract("_ -> new")
+    public @NonNull User incrementFailedLoginAttempts(int maxAttempts) {
+        int newAttempts = this.failedLoginAttempts + 1;
+
+        if (newAttempts >= maxAttempts) {
+            throw new InvalidUserDataException("user.exception.max_login_attempts_reached");
+        }
+
+        UserSnapshot snapshot = new UserSnapshot(
+                this.userId, this.username, this.email, this.password, this.userType,
+                this.isActive, this.emailVerified, this.profile,
+                newAttempts, this.lockedUntil, this.lastLoginAt, this.createdAt, Instant.now());
+        return new User(snapshot);
+    }
+
+    @Contract("_ -> new")
+    public @NonNull User lockAccount(long lockDurationMs) {
+        Instant lockUntil = Instant.now().plusMillis(lockDurationMs);
+        UserSnapshot snapshot = new UserSnapshot(
+                this.userId, this.username, this.email, this.password, this.userType,
+                this.isActive, this.emailVerified, this.profile,
+                this.failedLoginAttempts, lockUntil, this.lastLoginAt, this.createdAt, Instant.now());
+        return new User(snapshot);
+    }
+
+    @Contract(" -> new")
+    public @NonNull User unlockAccount() {
+        UserSnapshot snapshot = new UserSnapshot(
+                this.userId, this.username, this.email, this.password, this.userType,
+                this.isActive, this.emailVerified, this.profile,
+                0, null, this.lastLoginAt, this.createdAt, Instant.now());
+        return new User(snapshot);
+    }
+
+    public boolean isLocked() {
+        return this.lockedUntil != null && Instant.now().isBefore(this.lockedUntil);
     }
 
     @Override

@@ -1,6 +1,22 @@
 user:
   register:
     success: "Usuario registrado exitosamente"
+  email:
+    welcome:
+      subject: "¡Bienvenido a Security Spacee!"
+      greeting: "Hola {0},"
+      body: "Gracias por registrarte en Security Spacee. Tu cuenta ha sido creada exitosamente."
+      footer: "Saludos cordiales, El equipo de Security Spacee"
+    password_reset:
+      subject: "Solicitud de Restablecimiento de Contraseña"
+      greeting: "Hola {0},"
+      body: "Has solicitado restablecer tu contraseña. Usa el siguiente token: {1}"
+      footer: "Si no solicitaste esto, ignora este correo."
+    verification:
+      subject: "Verificación de Correo Electrónico"
+      greeting: "Hola {0},"
+      body: "Por favor verifica tu dirección de correo electrónico usando el siguiente token: {1}"
+      footer: "Gracias por usar Security Spacee."
   validation:
     username:
       required: "El nombre de usuario es obligatorio"
@@ -33,6 +49,7 @@ user:
     invalid_user_data: "Datos de usuario inválidos: {0}"
     human_profile_required: "Los usuarios HUMAN deben tener un UserProfile"
     non_human_profile_forbidden: "Los usuarios {0} no pueden tener un UserProfile"
+    max_login_attempts_reached: "Se alcanzó el número máximo de intentos de inicio de sesión. La cuenta será bloqueada."
     not_found:
       id: "Usuario no encontrado con ID: {0}"
 
