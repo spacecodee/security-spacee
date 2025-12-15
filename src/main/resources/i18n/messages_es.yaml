@@ -1,0 +1,48 @@
+user:
+  register:
+    success: "Usuario registrado exitosamente"
+  validation:
+    username:
+      required: "El nombre de usuario es obligatorio"
+      blank: "El nombre de usuario no puede estar vacío"
+      invalid_format: "El nombre de usuario solo puede contener caracteres alfanuméricos y guiones bajos"
+      min_length: "El nombre de usuario debe tener al menos 3 caracteres"
+      max_length: "El nombre de usuario no puede exceder 50 caracteres"
+      invalid_boundaries: "El nombre de usuario no puede comenzar ni terminar con guión bajo"
+    email:
+      required: "El correo electrónico es obligatorio"
+      blank: "El correo electrónico no puede estar vacío"
+      invalid_format: "Formato de correo electrónico inválido (RFC 5322)"
+      max_length: "El correo electrónico no puede exceder 255 caracteres"
+    password:
+      required: "La contraseña es obligatoria"
+      blank: "La contraseña no puede estar vacía"
+      min_length: "La contraseña debe tener al menos 8 caracteres"
+      max_length: "La contraseña no puede exceder 128 caracteres"
+    profile:
+      first_name_required: "El nombre es obligatorio para usuarios HUMAN"
+      last_name_required: "El apellido es obligatorio para usuarios HUMAN"
+      first_name_max_length: "El nombre no puede exceder 100 caracteres"
+      last_name_max_length: "El apellido no puede exceder 100 caracteres"
+      phone_max_length: "El número de teléfono no puede exceder 20 caracteres"
+      bio_max_length: "La biografía no puede exceder 500 caracteres"
+      date_of_birth_past: "La fecha de nacimiento debe ser en el pasado"
+  exception:
+    duplicate_username: "El nombre de usuario '{0}' ya existe en el sistema"
+    duplicate_email: "El correo electrónico '{0}' ya existe en el sistema"
+    invalid_user_data: "Datos de usuario inválidos: {0}"
+    human_profile_required: "Los usuarios HUMAN deben tener un UserProfile"
+    non_human_profile_forbidden: "Los usuarios {0} no pueden tener un UserProfile"
+    not_found:
+      id: "Usuario no encontrado con ID: {0}"
+
+validation:
+  error:
+    title: "Error de Validación"
+    detail: "Uno o más campos tienen errores de validación"
+    invalid_argument: "Argumento Inválido"
+
+error:
+  internal:
+    title: "Error Interno del Servidor"
+    detail: "Ocurrió un error inesperado. Por favor contacte a soporte."
