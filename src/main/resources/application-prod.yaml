@@ -63,8 +63,10 @@ application:
   # JWT Configuration (REQUIRED - Must be set via environment)
   jwt:
     secret: ${JWT_SECRET}
-    access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION}
-    refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION}
+    issuer: ${JWT_ISSUER}
+    audience: ${JWT_AUDIENCE}
+    access-expiration: ${JWT_ACCESS_EXPIRATION}
+    refresh-expiration: ${JWT_REFRESH_EXPIRATION}
 
   # Security - Production
   security:

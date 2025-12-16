@@ -157,6 +157,9 @@ application:
   # JWT Configuration - MUST be overridden in profile files
   jwt:
     issuer: security-spacee
+    audience: security-spacee-api
+    access-expiration: 900        # 15 minutes in seconds
+    refresh-expiration: 604800    # 7 days in seconds
 
   # Security - Sensible defaults, override as needed
   security:
