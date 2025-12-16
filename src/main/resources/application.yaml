@@ -160,8 +160,9 @@ application:
 
   # Security - Sensible defaults, override as needed
   security:
-    max-login-attempts: 5
-    account-lock-duration: 900000  # 15 minutes in ms
+    allowed-origins: "*"
+    max-login-attempts: 10
+    account-lock-duration: 15  # Duration in minutes
 
   # Cache TTL (milliseconds) - Sensible defaults
   cache:

@@ -16,6 +16,10 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.spacecodee.securityspacee.auth.domain.exception.AccountInactiveException;
+import com.spacecodee.securityspacee.auth.domain.exception.AccountLockedException;
+import com.spacecodee.securityspacee.auth.domain.exception.InvalidCredentialsException;
+import com.spacecodee.securityspacee.auth.domain.exception.UserNotFoundException;
 import com.spacecodee.securityspacee.user.domain.exception.DuplicateEmailException;
 import com.spacecodee.securityspacee.user.domain.exception.DuplicateUsernameException;
 import com.spacecodee.securityspacee.user.domain.exception.InvalidUserDataException;
@@ -153,6 +157,103 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem);
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleUserNotFound(
+            @NonNull UserNotFoundException ex,
+            @NonNull HttpServletRequest request) {
+        log.warn("UserNotFoundException: {}", ex.getMessage());
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String message = messageSource.getMessage(
+                ex.getMessage(),
+                null,
+                ex.getMessage(),
+                locale);
+
+        ProblemDetail problem = ProblemDetail.builder()
+                .type(PROBLEM_BASE_URI + "user-not-found")
+                .title(messageSource.getMessage("auth.exception.user_not_found", null, locale))
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .detail(message)
+                .instance(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem);
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidCredentials(
+            @NonNull InvalidCredentialsException ex,
+            @NonNull HttpServletRequest request) {
+        log.warn("InvalidCredentialsException: {}", ex.getMessage());
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String message = messageSource.getMessage(
+                ex.getMessage(),
+                null,
+                ex.getMessage(),
+                locale);
+
+        ProblemDetail problem = ProblemDetail.builder()
+                .type(PROBLEM_BASE_URI + "invalid-credentials")
+                .title(messageSource.getMessage("auth.exception.invalid_credentials", null, locale))
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .detail(message)
+                .instance(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem);
+    }
+
+    @ExceptionHandler(AccountInactiveException.class)
+    public ResponseEntity<ProblemDetail> handleAccountInactive(
+            @NonNull AccountInactiveException ex,
+            @NonNull HttpServletRequest request) {
+        log.warn("AccountInactiveException: {}", ex.getMessage());
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String message = messageSource.getMessage(
+                ex.getMessage(),
+                null,
+                ex.getMessage(),
+                locale);
+
+        ProblemDetail problem = ProblemDetail.builder()
+                .type(PROBLEM_BASE_URI + "account-inactive")
+                .title(messageSource.getMessage("auth.exception.account_inactive", null, locale))
+                .status(HttpStatus.FORBIDDEN.value())
+                .detail(message)
+                .instance(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(problem);
+    }
+
+    @ExceptionHandler(AccountLockedException.class)
+    public ResponseEntity<ProblemDetail> handleAccountLocked(
+            @NonNull AccountLockedException ex,
+            @NonNull HttpServletRequest request) {
+        log.warn("AccountLockedException: Account locked until {}", ex.getLockedUntil());
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String message = messageSource.getMessage(
+                ex.getMessage(),
+                null,
+                ex.getMessage(),
+                locale);
+
+        ProblemDetail problem = ProblemDetail.builder()
+                .type(PROBLEM_BASE_URI + "account-locked")
+                .title(messageSource.getMessage("auth.exception.account_locked",
+                        new Object[]{ex.getLockedUntil().toString()}, locale))
+                .status(HttpStatus.LOCKED.value())
+                .detail(message)
+                .instance(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.LOCKED).body(problem);
     }
 
     @ExceptionHandler(Exception.class)

@@ -106,8 +106,8 @@ application:
   # Security - Test configuration
   security:
     allowed-origins: http://localhost:8080,http://localhost:3000
-    max-login-attempts: 5
-    account-lock-duration: 900000
+    max-login-attempts: 3  # Lower for faster test execution
+    account-lock-duration: 5  # 5 minutes for tests
 
   # Cache TTL - Shorter for tests
   cache:
