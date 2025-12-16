@@ -77,6 +77,8 @@ tasks.named('test') {
     useJUnitPlatform()
     // Java 25: Enable native access for Netty
     jvmArgs '--enable-native-access=ALL-UNNAMED'
+    // Java 21+: Enable dynamic agent loading for Mockito inline mock maker
+    jvmArgs '-XX:+EnableDynamicAgentLoading'
 }
 
 // Java 25: Enable native access for Netty (development)
