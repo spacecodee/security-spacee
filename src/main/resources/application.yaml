@@ -176,6 +176,12 @@ application:
       jwt-blacklist: 2592000000  # 30 days
 
 # =============================================================================
+# SESSION CONFIGURATION
+# =============================================================================
+session:
+  expiration: 24h  # Session expiration time (24 hours)
+
+# =============================================================================
 # LOGGING CONFIGURATION (SLF4J)
 # Production defaults - Override in profile files for verbose logging
 # =============================================================================

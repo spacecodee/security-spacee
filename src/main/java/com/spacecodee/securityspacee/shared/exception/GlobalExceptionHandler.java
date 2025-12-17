@@ -28,6 +28,9 @@ import com.spacecodee.securityspacee.jwttoken.domain.exception.TokenExpiredExcep
 import com.spacecodee.securityspacee.jwttoken.domain.exception.TokenHasNotExpiredException;
 import com.spacecodee.securityspacee.jwttoken.domain.exception.TokenNotFoundException;
 import com.spacecodee.securityspacee.jwttoken.domain.exception.TokenRevokedException;
+import com.spacecodee.securityspacee.session.domain.exception.SessionExpiredException;
+import com.spacecodee.securityspacee.session.domain.exception.SessionInvalidStateException;
+import com.spacecodee.securityspacee.session.domain.exception.SessionNotFoundException;
 import com.spacecodee.securityspacee.user.domain.exception.DuplicateEmailException;
 import com.spacecodee.securityspacee.user.domain.exception.DuplicateUsernameException;
 import com.spacecodee.securityspacee.user.domain.exception.InvalidUserDataException;
@@ -55,7 +58,7 @@ public class GlobalExceptionHandler {
         Locale locale = LocaleContextHolder.getLocale();
         String message = messageSource.getMessage(
                 ex.getMessage(),
-                new Object[] { ex.getUsername() },
+                new Object[]{ex.getUsername()},
                 ex.getMessage(),
                 locale);
 
@@ -79,7 +82,7 @@ public class GlobalExceptionHandler {
         Locale locale = LocaleContextHolder.getLocale();
         String message = messageSource.getMessage(
                 ex.getMessage(),
-                new Object[] { ex.getEmail() },
+                new Object[]{ex.getEmail()},
                 ex.getMessage(),
                 locale);
 
@@ -255,7 +258,7 @@ public class GlobalExceptionHandler {
         ProblemDetail problem = ProblemDetail.builder()
                 .type(PROBLEM_BASE_URI + "account-locked")
                 .title(messageSource.getMessage("auth.exception.account_locked",
-                        new Object[] { ex.getLockedUntil().toString() }, locale))
+                        new Object[]{ex.getLockedUntil().toString()}, locale))
                 .status(HttpStatus.LOCKED.value())
                 .detail(message)
                 .instance(request.getRequestURI())
@@ -440,6 +443,78 @@ public class GlobalExceptionHandler {
         ProblemDetail problem = ProblemDetail.builder()
                 .type(PROBLEM_BASE_URI + "invalid-token-type")
                 .title(messageSource.getMessage("jwttoken.exception.invalid_token_type_title", null, locale))
+                .status(HttpStatus.BAD_REQUEST.value())
+                .detail(message)
+                .instance(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem);
+    }
+
+    @ExceptionHandler(SessionNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleSessionNotFound(
+            @NonNull SessionNotFoundException ex,
+            @NonNull HttpServletRequest request) {
+        log.warn("SessionNotFoundException: {}", ex.getMessage());
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String message = messageSource.getMessage(
+                ex.getMessage(),
+                null,
+                ex.getMessage(),
+                locale);
+
+        ProblemDetail problem = ProblemDetail.builder()
+                .type(PROBLEM_BASE_URI + "session-not-found")
+                .title(messageSource.getMessage("session.error.not_found", null, locale))
+                .status(HttpStatus.NOT_FOUND.value())
+                .detail(message)
+                .instance(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
+    }
+
+    @ExceptionHandler(SessionExpiredException.class)
+    public ResponseEntity<ProblemDetail> handleSessionExpired(
+            @NonNull SessionExpiredException ex,
+            @NonNull HttpServletRequest request) {
+        log.warn("SessionExpiredException: {}", ex.getMessage());
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String message = messageSource.getMessage(
+                ex.getMessage(),
+                null,
+                ex.getMessage(),
+                locale);
+
+        ProblemDetail problem = ProblemDetail.builder()
+                .type(PROBLEM_BASE_URI + "session-expired")
+                .title(messageSource.getMessage("session.error.expired", null, locale))
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .detail(message)
+                .instance(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem);
+    }
+
+    @ExceptionHandler(SessionInvalidStateException.class)
+    public ResponseEntity<ProblemDetail> handleSessionInvalidState(
+            @NonNull SessionInvalidStateException ex,
+            @NonNull HttpServletRequest request) {
+        log.warn("SessionInvalidStateException: {}", ex.getMessage());
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String message = messageSource.getMessage(
+                ex.getMessage(),
+                null,
+                ex.getMessage(),
+                locale);
+
+        ProblemDetail problem = ProblemDetail.builder()
+                .type(PROBLEM_BASE_URI + "session-invalid-state")
+                .title(messageSource.getMessage("session.error.invalid_state", null, locale))
                 .status(HttpStatus.BAD_REQUEST.value())
                 .detail(message)
                 .instance(request.getRequestURI())

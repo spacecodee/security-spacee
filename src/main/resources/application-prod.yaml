@@ -83,6 +83,12 @@ application:
       jwt-blacklist: ${CACHE_TTL_JWT_BLACKLIST}
 
 # =============================================================================
+# SESSION CONFIGURATION (Production)
+# =============================================================================
+session:
+  expiration: ${SESSION_EXPIRATION}  # Session expiration time (env var)
+
+# =============================================================================
 # LOGGING - Production (Minimal, JSON format recommended)
 # =============================================================================
 logging:
