@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.spacecodee.securityspacee.auth.adapter.request.LoginRequest;
+import com.spacecodee.securityspacee.auth.adapter.request.RefreshTokenRequest;
 import com.spacecodee.securityspacee.shared.adapter.in.web.dto.ApiDataResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,4 +33,15 @@ public interface IAuthController {
     @PostMapping("/login")
     ResponseEntity<ApiDataResponse<Object>> login(
             @Valid @RequestBody LoginRequest request, HttpServletRequest servletRequest);
+
+    @Operation(summary = "Refresh Access Token", description = "Renew access token using a valid refresh token. Returns a new access token without requiring re-login. The refresh token remains valid and can be reused.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Token refresh successful. Returns new access token with expiration.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiDataResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid request or malformed refresh token", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - Refresh token expired, revoked, or invalid", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "403", description = "Forbidden - Refresh token has been previously revoked (possible token reuse attack)", content = @Content(mediaType = "application/json"))
+    })
+    @PostMapping("/refresh")
+    ResponseEntity<ApiDataResponse<Object>> refresh(
+            @Valid @RequestBody RefreshTokenRequest request, HttpServletRequest servletRequest);
 }

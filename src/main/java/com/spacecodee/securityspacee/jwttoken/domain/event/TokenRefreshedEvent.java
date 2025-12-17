@@ -16,8 +16,10 @@ public final class TokenRefreshedEvent {
     private final String newAccessTokenJti;
     private final String refreshTokenJti;
     private final Integer userId;
+    private final String sessionId;
     private final Instant refreshedAt;
     private final Integer refreshCount;
+    private final Instant newAccessTokenExpiresAt;
 
     @Override
     public boolean equals(Object o) {
@@ -41,7 +43,9 @@ public final class TokenRefreshedEvent {
                 "oldAccessTokenJti='" + this.oldAccessTokenJti + '\'' +
                 ", newAccessTokenJti='" + this.newAccessTokenJti + '\'' +
                 ", userId=" + this.userId +
+                ", sessionId='" + this.sessionId + '\'' +
                 ", refreshCount=" + this.refreshCount +
+                ", newAccessTokenExpiresAt=" + this.newAccessTokenExpiresAt +
                 '}';
     }
 }

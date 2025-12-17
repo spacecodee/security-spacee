@@ -22,4 +22,6 @@ public interface IJwtTokenRepository {
     void revokeAllByUserId(Integer userId);
 
     boolean existsByJtiAndState(Jti jti, TokenState state);
+
+    Optional<JwtToken> findLatestAccessTokenBySessionId(String sessionId);
 }

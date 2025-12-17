@@ -1,12 +1,13 @@
 package com.spacecodee.securityspacee.auth.infrastructure.config;
 
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.spacecodee.securityspacee.auth.adapter.mapper.ILoginRequestMapper;
+import com.spacecodee.securityspacee.auth.adapter.mapper.IRefreshTokenRequestMapper;
 import com.spacecodee.securityspacee.auth.adapter.mapper.impl.LoginRequestMapperImpl;
+import com.spacecodee.securityspacee.auth.adapter.mapper.impl.RefreshTokenRequestMapperImpl;
 import com.spacecodee.securityspacee.auth.application.mapper.IAuthenticationResponseMapper;
 import com.spacecodee.securityspacee.auth.application.mapper.impl.AuthenticationResponseMapperImpl;
 import com.spacecodee.securityspacee.auth.application.port.in.ILoginUseCase;
@@ -21,6 +22,8 @@ import com.spacecodee.securityspacee.auth.infrastructure.adapter.TokenServiceAda
 import com.spacecodee.securityspacee.auth.infrastructure.adapter.UserAuthenticationAdapter;
 import com.spacecodee.securityspacee.jwttoken.application.port.in.IIssueTokenUseCase;
 import com.spacecodee.securityspacee.session.application.port.in.ICreateSessionUseCase;
+import com.spacecodee.securityspacee.shared.application.port.out.IClientIpExtractorPort;
+import com.spacecodee.securityspacee.shared.application.port.out.IMessageResolverPort;
 import com.spacecodee.securityspacee.shared.config.properties.SecurityProperties;
 import com.spacecodee.securityspacee.user.application.port.out.IPasswordEncoder;
 import com.spacecodee.securityspacee.user.domain.repository.IUserRepository;
@@ -58,7 +61,7 @@ public class AuthBeanConfiguration {
             ISessionService sessionService,
             ApplicationEventPublisher eventPublisher,
             IAuthenticationResponseMapper responseMapper,
-            MessageSource messageSource,
+            IMessageResolverPort messageResolverPort,
             SecurityProperties securityProperties) {
         return new LoginUseCase(
                 userAuthenticationPort,
@@ -67,7 +70,7 @@ public class AuthBeanConfiguration {
                 sessionService,
                 eventPublisher,
                 responseMapper,
-                messageSource,
+                messageResolverPort,
                 securityProperties);
     }
 
@@ -77,7 +80,12 @@ public class AuthBeanConfiguration {
     }
 
     @Bean
-    public ILoginRequestMapper loginRequestMapper() {
-        return new LoginRequestMapperImpl();
+    public ILoginRequestMapper loginRequestMapper(IClientIpExtractorPort clientIpExtractorPort) {
+        return new LoginRequestMapperImpl(clientIpExtractorPort);
+    }
+
+    @Bean
+    public IRefreshTokenRequestMapper refreshTokenRequestMapper(IClientIpExtractorPort clientIpExtractorPort) {
+        return new RefreshTokenRequestMapperImpl(clientIpExtractorPort);
     }
 }

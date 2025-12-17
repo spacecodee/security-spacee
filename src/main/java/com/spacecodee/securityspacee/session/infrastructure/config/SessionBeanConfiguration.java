@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.spacecodee.securityspacee.session.application.eventlistener.CreateSessionOnLoginEventListener;
+import com.spacecodee.securityspacee.session.application.eventlistener.UpdateSessionActivityEventListener;
 import com.spacecodee.securityspacee.session.application.mapper.ISessionResponseMapper;
 import com.spacecodee.securityspacee.session.application.mapper.impl.SessionResponseMapperImpl;
 import com.spacecodee.securityspacee.session.application.port.in.ICreateSessionUseCase;
@@ -80,5 +81,11 @@ public class SessionBeanConfiguration {
     public @NonNull CreateSessionOnLoginEventListener createSessionOnLoginEventListener(
             @NonNull ICreateSessionUseCase createSessionUseCase) {
         return new CreateSessionOnLoginEventListener(createSessionUseCase);
+    }
+
+    @Bean
+    public @NonNull UpdateSessionActivityEventListener updateSessionActivityEventListener(
+            @NonNull ISessionRepository sessionRepository) {
+        return new UpdateSessionActivityEventListener(sessionRepository);
     }
 }

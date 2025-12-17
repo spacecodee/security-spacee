@@ -2,13 +2,10 @@ package com.spacecodee.securityspacee.auth.application.usecase;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Locale;
 
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.NonNull;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 
 import com.spacecodee.securityspacee.auth.application.command.LoginCommand;
 import com.spacecodee.securityspacee.auth.application.mapper.IAuthenticationResponseMapper;
@@ -31,6 +28,7 @@ import com.spacecodee.securityspacee.auth.domain.exception.UserNotFoundException
 import com.spacecodee.securityspacee.auth.domain.valueobject.AccountLockDuration;
 import com.spacecodee.securityspacee.auth.domain.valueobject.AuthenticationResult;
 import com.spacecodee.securityspacee.auth.domain.valueobject.FailureReason;
+import com.spacecodee.securityspacee.shared.application.port.out.IMessageResolverPort;
 import com.spacecodee.securityspacee.shared.config.properties.SecurityProperties;
 import com.spacecodee.securityspacee.user.domain.model.User;
 
@@ -42,7 +40,7 @@ public final class LoginUseCase implements ILoginUseCase {
     private final ISessionService sessionService;
     private final ApplicationEventPublisher eventPublisher;
     private final IAuthenticationResponseMapper responseMapper;
-    private final MessageSource messageSource;
+    private final IMessageResolverPort messageResolverPort;
     private final SecurityProperties securityProperties;
 
     @SuppressWarnings("java:S107")
@@ -53,7 +51,7 @@ public final class LoginUseCase implements ILoginUseCase {
             ISessionService sessionService,
             ApplicationEventPublisher eventPublisher,
             IAuthenticationResponseMapper responseMapper,
-            MessageSource messageSource,
+            IMessageResolverPort messageResolverPort,
             SecurityProperties securityProperties) {
         this.userAuthenticationPort = userAuthenticationPort;
         this.passwordValidator = passwordValidator;
@@ -61,7 +59,7 @@ public final class LoginUseCase implements ILoginUseCase {
         this.sessionService = sessionService;
         this.eventPublisher = eventPublisher;
         this.responseMapper = responseMapper;
-        this.messageSource = messageSource;
+        this.messageResolverPort = messageResolverPort;
         this.securityProperties = securityProperties;
     }
 
@@ -190,7 +188,7 @@ public final class LoginUseCase implements ILoginUseCase {
         eventPublisher.publishEvent(event);
     }
 
-    private TokenPair issueTokens(AuthenticationResult authResult) {
+    private TokenPair issueTokens(@NonNull AuthenticationResult authResult) {
         AuthIssueTokenCommand tokenCommand = new AuthIssueTokenCommand(
                 authResult.getUserId(),
                 authResult.getUsername(),
@@ -211,8 +209,7 @@ public final class LoginUseCase implements ILoginUseCase {
         sessionService.createSession(sessionCommand);
     }
 
-    private String getMessage(String code, Object... args) {
-        Locale locale = LocaleContextHolder.getLocale();
-        return messageSource.getMessage(code, args, code, locale);
+    private @NonNull String getMessage(String code, Object... args) {
+        return this.messageResolverPort.getMessage(code, args);
     }
 }

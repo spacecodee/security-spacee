@@ -80,4 +80,12 @@ public class JwtTokenPersistenceAdapter implements IJwtTokenRepository {
                 .map(entity -> entity.getState() == state)
                 .orElse(false);
     }
+
+    @Override
+    @NonNull
+    @Transactional(readOnly = true)
+    public Optional<JwtToken> findLatestAccessTokenBySessionId(@NonNull String sessionId) {
+        return this.springJpaRepository.findLatestAccessTokenBySessionId(sessionId)
+                .map(this.mapper::toDomain);
+    }
 }
