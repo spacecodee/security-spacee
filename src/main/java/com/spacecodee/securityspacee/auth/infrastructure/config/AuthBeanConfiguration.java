@@ -1,7 +1,6 @@
 package com.spacecodee.securityspacee.auth.infrastructure.config;
 
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -24,6 +23,7 @@ import com.spacecodee.securityspacee.auth.infrastructure.adapter.UserAuthenticat
 import com.spacecodee.securityspacee.jwttoken.application.port.in.IIssueTokenUseCase;
 import com.spacecodee.securityspacee.session.application.port.in.ICreateSessionUseCase;
 import com.spacecodee.securityspacee.shared.application.port.out.IClientIpExtractorPort;
+import com.spacecodee.securityspacee.shared.application.port.out.IMessageResolverPort;
 import com.spacecodee.securityspacee.shared.config.properties.SecurityProperties;
 import com.spacecodee.securityspacee.user.application.port.out.IPasswordEncoder;
 import com.spacecodee.securityspacee.user.domain.repository.IUserRepository;
@@ -61,7 +61,7 @@ public class AuthBeanConfiguration {
             ISessionService sessionService,
             ApplicationEventPublisher eventPublisher,
             IAuthenticationResponseMapper responseMapper,
-            MessageSource messageSource,
+            IMessageResolverPort messageResolverPort,
             SecurityProperties securityProperties) {
         return new LoginUseCase(
                 userAuthenticationPort,
@@ -70,7 +70,7 @@ public class AuthBeanConfiguration {
                 sessionService,
                 eventPublisher,
                 responseMapper,
-                messageSource,
+                messageResolverPort,
                 securityProperties);
     }
 

@@ -1,11 +1,7 @@
 package com.spacecodee.securityspacee.jwttoken.application.usecase;
 
-import java.util.Locale;
-
 import org.jspecify.annotations.NonNull;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 
 import com.spacecodee.securityspacee.jwttoken.application.command.RevokeTokenCommand;
 import com.spacecodee.securityspacee.jwttoken.application.port.in.IRevokeTokenUseCase;
@@ -15,23 +11,24 @@ import com.spacecodee.securityspacee.jwttoken.domain.exception.TokenNotFoundExce
 import com.spacecodee.securityspacee.jwttoken.domain.model.JwtToken;
 import com.spacecodee.securityspacee.jwttoken.domain.repository.IJwtTokenRepository;
 import com.spacecodee.securityspacee.jwttoken.domain.valueobject.Jti;
+import com.spacecodee.securityspacee.shared.application.port.out.IMessageResolverPort;
 
 public final class RevokeTokenUseCase implements IRevokeTokenUseCase {
 
     private final IJwtTokenRepository jwtTokenRepository;
     private final IClockService clockService;
     private final ApplicationEventPublisher eventPublisher;
-    private final MessageSource messageSource;
+    private final IMessageResolverPort messageResolverPort;
 
     public RevokeTokenUseCase(
             IJwtTokenRepository jwtTokenRepository,
             IClockService clockService,
             ApplicationEventPublisher eventPublisher,
-            MessageSource messageSource) {
+            IMessageResolverPort messageResolverPort) {
         this.jwtTokenRepository = jwtTokenRepository;
         this.clockService = clockService;
         this.eventPublisher = eventPublisher;
-        this.messageSource = messageSource;
+        this.messageResolverPort = messageResolverPort;
     }
 
     @Override
@@ -61,8 +58,7 @@ public final class RevokeTokenUseCase implements IRevokeTokenUseCase {
         this.eventPublisher.publishEvent(event);
     }
 
-    private String getMessage(String code, Object... args) {
-        Locale locale = LocaleContextHolder.getLocale();
-        return this.messageSource.getMessage(code, args, code, locale);
+    private @NonNull String getMessage(String code, Object... args) {
+        return this.messageResolverPort.getMessage(code, args);
     }
 }

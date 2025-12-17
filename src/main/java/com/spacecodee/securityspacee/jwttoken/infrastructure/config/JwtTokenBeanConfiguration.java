@@ -1,7 +1,6 @@
 package com.spacecodee.securityspacee.jwttoken.infrastructure.config;
 
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -28,6 +27,7 @@ import com.spacecodee.securityspacee.jwttoken.infrastructure.persistence.JwtToke
 import com.spacecodee.securityspacee.jwttoken.infrastructure.persistence.jpa.SpringJpaJwtTokenRepository;
 import com.spacecodee.securityspacee.jwttoken.infrastructure.persistence.mapper.IJwtTokenPersistenceMapper;
 import com.spacecodee.securityspacee.jwttoken.infrastructure.persistence.mapper.impl.JwtTokenPersistenceMapperImpl;
+import com.spacecodee.securityspacee.shared.application.port.out.IMessageResolverPort;
 import com.spacecodee.securityspacee.shared.config.properties.JwtProperties;
 
 @Configuration
@@ -95,14 +95,14 @@ public class JwtTokenBeanConfiguration {
             IJwtCryptoService jwtCryptoService,
             IClockService clockService,
             ApplicationEventPublisher eventPublisher,
-            MessageSource messageSource,
+            IMessageResolverPort messageResolverPort,
             ITokenValidationResponseMapper validationResponseMapper) {
         return new ValidateTokenUseCase(
                 jwtTokenRepository,
                 jwtCryptoService,
                 clockService,
                 eventPublisher,
-                messageSource,
+                messageResolverPort,
                 validationResponseMapper);
     }
 
@@ -113,7 +113,7 @@ public class JwtTokenBeanConfiguration {
             IClockService clockService,
             ApplicationEventPublisher eventPublisher,
             JwtProperties jwtProperties,
-            MessageSource messageSource,
+            IMessageResolverPort messageResolverPort,
             IClaimsMapper claimsMapper) {
         return new RefreshTokenUseCase(
                 jwtTokenRepository,
@@ -121,7 +121,7 @@ public class JwtTokenBeanConfiguration {
                 clockService,
                 eventPublisher,
                 jwtProperties,
-                messageSource,
+                messageResolverPort,
                 claimsMapper);
     }
 
@@ -130,11 +130,11 @@ public class JwtTokenBeanConfiguration {
             IJwtTokenRepository jwtTokenRepository,
             IClockService clockService,
             ApplicationEventPublisher eventPublisher,
-            MessageSource messageSource) {
+            IMessageResolverPort messageResolverPort) {
         return new RevokeTokenUseCase(
                 jwtTokenRepository,
                 clockService,
                 eventPublisher,
-                messageSource);
+                messageResolverPort);
     }
 }

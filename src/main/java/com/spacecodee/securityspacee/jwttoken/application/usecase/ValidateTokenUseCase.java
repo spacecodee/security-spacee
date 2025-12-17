@@ -1,14 +1,11 @@
 package com.spacecodee.securityspacee.jwttoken.application.usecase;
 
 import java.time.Instant;
-import java.util.Locale;
 import java.util.Map;
 
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.NonNull;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 
 import com.spacecodee.securityspacee.jwttoken.application.command.ValidateTokenCommand;
 import com.spacecodee.securityspacee.jwttoken.application.mapper.ITokenValidationResponseMapper;
@@ -28,6 +25,7 @@ import com.spacecodee.securityspacee.jwttoken.domain.valueobject.Jti;
 import com.spacecodee.securityspacee.jwttoken.domain.valueobject.TokenState;
 import com.spacecodee.securityspacee.jwttoken.domain.valueobject.ValidationFailureReason;
 import com.spacecodee.securityspacee.jwttoken.domain.valueobject.ValidationMode;
+import com.spacecodee.securityspacee.shared.application.port.out.IMessageResolverPort;
 
 public final class ValidateTokenUseCase implements IValidateTokenUseCase {
 
@@ -35,7 +33,7 @@ public final class ValidateTokenUseCase implements IValidateTokenUseCase {
     private final IJwtCryptoService jwtCryptoService;
     private final IClockService clockService;
     private final ApplicationEventPublisher eventPublisher;
-    private final MessageSource messageSource;
+    private final IMessageResolverPort messageResolverPort;
     private final ITokenValidationResponseMapper validationResponseMapper;
 
     public ValidateTokenUseCase(
@@ -43,13 +41,13 @@ public final class ValidateTokenUseCase implements IValidateTokenUseCase {
             IJwtCryptoService jwtCryptoService,
             IClockService clockService,
             ApplicationEventPublisher eventPublisher,
-            MessageSource messageSource,
+            IMessageResolverPort messageResolverPort,
             ITokenValidationResponseMapper validationResponseMapper) {
         this.jwtTokenRepository = jwtTokenRepository;
         this.jwtCryptoService = jwtCryptoService;
         this.clockService = clockService;
         this.eventPublisher = eventPublisher;
-        this.messageSource = messageSource;
+        this.messageResolverPort = messageResolverPort;
         this.validationResponseMapper = validationResponseMapper;
     }
 
@@ -119,8 +117,7 @@ public final class ValidateTokenUseCase implements IValidateTokenUseCase {
         this.eventPublisher.publishEvent(event);
     }
 
-    private String getMessage(String code, Object... args) {
-        Locale locale = LocaleContextHolder.getLocale();
-        return this.messageSource.getMessage(code, args, code, locale);
+    private @NonNull String getMessage(String code, Object... args) {
+        return this.messageResolverPort.getMessage(code, args);
     }
 }

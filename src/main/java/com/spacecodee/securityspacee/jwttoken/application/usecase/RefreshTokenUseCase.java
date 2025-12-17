@@ -2,13 +2,10 @@ package com.spacecodee.securityspacee.jwttoken.application.usecase;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Locale;
 
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.NonNull;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 
 import com.spacecodee.securityspacee.jwttoken.application.command.RefreshTokenCommand;
 import com.spacecodee.securityspacee.jwttoken.application.mapper.IClaimsMapper;
@@ -26,6 +23,7 @@ import com.spacecodee.securityspacee.jwttoken.domain.valueobject.Claims;
 import com.spacecodee.securityspacee.jwttoken.domain.valueobject.Jti;
 import com.spacecodee.securityspacee.jwttoken.domain.valueobject.TokenState;
 import com.spacecodee.securityspacee.jwttoken.domain.valueobject.TokenType;
+import com.spacecodee.securityspacee.shared.application.port.out.IMessageResolverPort;
 import com.spacecodee.securityspacee.shared.config.properties.JwtProperties;
 
 public final class RefreshTokenUseCase implements IRefreshTokenUseCase {
@@ -35,7 +33,7 @@ public final class RefreshTokenUseCase implements IRefreshTokenUseCase {
     private final IClockService clockService;
     private final ApplicationEventPublisher eventPublisher;
     private final JwtProperties jwtProperties;
-    private final MessageSource messageSource;
+    private final IMessageResolverPort messageResolverPort;
     private final IClaimsMapper claimsMapper;
 
     public RefreshTokenUseCase(
@@ -44,14 +42,14 @@ public final class RefreshTokenUseCase implements IRefreshTokenUseCase {
             IClockService clockService,
             ApplicationEventPublisher eventPublisher,
             JwtProperties jwtProperties,
-            MessageSource messageSource,
+            IMessageResolverPort messageResolverPort,
             IClaimsMapper claimsMapper) {
         this.jwtTokenRepository = jwtTokenRepository;
         this.jwtCryptoService = jwtCryptoService;
         this.clockService = clockService;
         this.eventPublisher = eventPublisher;
         this.jwtProperties = jwtProperties;
-        this.messageSource = messageSource;
+        this.messageResolverPort = messageResolverPort;
         this.claimsMapper = claimsMapper;
     }
 
@@ -153,9 +151,7 @@ public final class RefreshTokenUseCase implements IRefreshTokenUseCase {
                 });
     }
 
-    private String getMessage(String code, Object... args) {
-        Locale locale = LocaleContextHolder.getLocale();
-        String message = this.messageSource.getMessage(code, args, code, locale);
-        return message != null ? message : code;
+    private @NonNull String getMessage(String code, Object... args) {
+        return this.messageResolverPort.getMessage(code, args);
     }
 }
