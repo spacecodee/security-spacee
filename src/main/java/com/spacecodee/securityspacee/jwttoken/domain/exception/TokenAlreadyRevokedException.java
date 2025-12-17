@@ -1,8 +1,12 @@
 package com.spacecodee.securityspacee.jwttoken.domain.exception;
 
-public final class TokenAlreadyRevokedException extends RuntimeException {
+import org.jspecify.annotations.NonNull;
 
-    public TokenAlreadyRevokedException(String message) {
+import com.spacecodee.securityspacee.shared.exception.base.ConflictException;
+
+public final class TokenAlreadyRevokedException extends ConflictException {
+
+    public TokenAlreadyRevokedException(@NonNull String message) {
         super(message);
     }
 

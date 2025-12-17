@@ -1,8 +1,13 @@
 package com.spacecodee.securityspacee.auth.domain.exception;
 
-public final class AccountInactiveException extends RuntimeException {
+import org.jspecify.annotations.NonNull;
 
-    public AccountInactiveException(String message) {
+import com.spacecodee.securityspacee.shared.exception.base.AuthorizationException;
+
+public final class AccountInactiveException extends AuthorizationException {
+
+    public AccountInactiveException(@NonNull String message) {
         super(message);
     }
+
 }

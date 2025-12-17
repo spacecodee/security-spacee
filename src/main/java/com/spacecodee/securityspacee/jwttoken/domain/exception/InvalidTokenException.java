@@ -1,8 +1,12 @@
 package com.spacecodee.securityspacee.jwttoken.domain.exception;
 
-public final class InvalidTokenException extends RuntimeException {
+import org.jspecify.annotations.NonNull;
 
-    public InvalidTokenException(String message) {
+import com.spacecodee.securityspacee.shared.exception.base.AuthenticationException;
+
+public final class InvalidTokenException extends AuthenticationException {
+
+    public InvalidTokenException(@NonNull String message) {
         super(message);
     }
 
