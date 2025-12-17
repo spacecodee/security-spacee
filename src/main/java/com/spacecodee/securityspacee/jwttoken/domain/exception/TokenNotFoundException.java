@@ -1,8 +1,13 @@
 package com.spacecodee.securityspacee.jwttoken.domain.exception;
 
-public final class TokenNotFoundException extends RuntimeException {
+import org.jspecify.annotations.NonNull;
 
-    public TokenNotFoundException(String message) {
+import com.spacecodee.securityspacee.shared.exception.base.AuthenticationException;
+
+public final class TokenNotFoundException extends AuthenticationException {
+
+    public TokenNotFoundException(@NonNull String message) {
         super(message);
     }
+
 }

@@ -22,8 +22,8 @@ import com.spacecodee.securityspacee.auth.domain.event.AccountLockedEvent;
 import com.spacecodee.securityspacee.auth.domain.event.LoginFailedEvent;
 import com.spacecodee.securityspacee.auth.domain.event.LoginSuccessEvent;
 import com.spacecodee.securityspacee.auth.domain.exception.AccountInactiveException;
-import com.spacecodee.securityspacee.auth.domain.exception.AccountLockedException;
 import com.spacecodee.securityspacee.auth.domain.exception.InvalidCredentialsException;
+import com.spacecodee.securityspacee.auth.domain.exception.UserAccountLockedException;
 import com.spacecodee.securityspacee.auth.domain.exception.UserNotFoundException;
 import com.spacecodee.securityspacee.auth.domain.valueobject.AccountLockDuration;
 import com.spacecodee.securityspacee.auth.domain.valueobject.AuthenticationResult;
@@ -99,7 +99,7 @@ public final class LoginUseCase implements ILoginUseCase {
         }
 
         if (user.isLocked()) {
-            throw new AccountLockedException(
+            throw new UserAccountLockedException(
                     getMessage("auth.exception.account_locked", user.getLockedUntil().toString()),
                     user.getLockedUntil());
         }

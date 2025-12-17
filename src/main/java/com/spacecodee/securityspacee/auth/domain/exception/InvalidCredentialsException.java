@@ -1,8 +1,13 @@
 package com.spacecodee.securityspacee.auth.domain.exception;
 
-public final class InvalidCredentialsException extends RuntimeException {
+import org.jspecify.annotations.NonNull;
 
-    public InvalidCredentialsException(String message) {
+import com.spacecodee.securityspacee.shared.exception.base.AuthenticationException;
+
+public final class InvalidCredentialsException extends AuthenticationException {
+
+    public InvalidCredentialsException(@NonNull String message) {
         super(message);
     }
+
 }
