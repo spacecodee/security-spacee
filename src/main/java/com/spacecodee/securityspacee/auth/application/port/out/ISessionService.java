@@ -2,5 +2,5 @@ package com.spacecodee.securityspacee.auth.application.port.out;
 
 public interface ISessionService {
 
-    void createSession(CreateSessionCommand command);
+    void createSession(AuthCreateSessionCommand command);
 }

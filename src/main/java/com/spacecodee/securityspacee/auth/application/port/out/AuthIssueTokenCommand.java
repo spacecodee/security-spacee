@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.spacecodee.securityspacee.user.domain.valueobject.UserType;
 
-public record IssueTokenCommand(
+public record AuthIssueTokenCommand(
         Integer userId,
         String username,
         String email,

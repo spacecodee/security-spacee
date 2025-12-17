@@ -15,10 +15,40 @@ import com.spacecodee.securityspacee.auth.application.port.out.ISessionService;
 import com.spacecodee.securityspacee.auth.application.port.out.ITokenService;
 import com.spacecodee.securityspacee.auth.application.port.out.IUserAuthenticationPort;
 import com.spacecodee.securityspacee.auth.application.usecase.LoginUseCase;
+import com.spacecodee.securityspacee.auth.infrastructure.adapter.PasswordValidatorAdapter;
+import com.spacecodee.securityspacee.auth.infrastructure.adapter.SessionServiceAdapter;
+import com.spacecodee.securityspacee.auth.infrastructure.adapter.TokenServiceAdapter;
+import com.spacecodee.securityspacee.auth.infrastructure.adapter.UserAuthenticationAdapter;
+import com.spacecodee.securityspacee.jwttoken.application.port.in.IIssueTokenUseCase;
+import com.spacecodee.securityspacee.session.application.port.in.ICreateSessionUseCase;
 import com.spacecodee.securityspacee.shared.config.properties.SecurityProperties;
+import com.spacecodee.securityspacee.user.application.port.out.IPasswordEncoder;
+import com.spacecodee.securityspacee.user.domain.repository.IUserRepository;
 
 @Configuration
 public class AuthBeanConfiguration {
+
+    @Bean
+    public IUserAuthenticationPort userAuthenticationPort(
+            IUserRepository userRepository,
+            SecurityProperties securityProperties) {
+        return new UserAuthenticationAdapter(userRepository, securityProperties);
+    }
+
+    @Bean
+    public IPasswordValidator passwordValidator(IPasswordEncoder passwordEncoder) {
+        return new PasswordValidatorAdapter(passwordEncoder);
+    }
+
+    @Bean
+    public ITokenService tokenService(IIssueTokenUseCase issueTokenUseCase) {
+        return new TokenServiceAdapter(issueTokenUseCase);
+    }
+
+    @Bean
+    public ISessionService sessionService(ICreateSessionUseCase createSessionUseCase) {
+        return new SessionServiceAdapter(createSessionUseCase);
+    }
 
     @Bean
     public ILoginUseCase loginUseCase(

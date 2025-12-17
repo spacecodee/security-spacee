@@ -13,12 +13,12 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import com.spacecodee.securityspacee.auth.application.command.LoginCommand;
 import com.spacecodee.securityspacee.auth.application.mapper.IAuthenticationResponseMapper;
 import com.spacecodee.securityspacee.auth.application.port.in.ILoginUseCase;
-import com.spacecodee.securityspacee.auth.application.port.out.CreateSessionCommand;
+import com.spacecodee.securityspacee.auth.application.port.out.AuthCreateSessionCommand;
+import com.spacecodee.securityspacee.auth.application.port.out.AuthIssueTokenCommand;
 import com.spacecodee.securityspacee.auth.application.port.out.IPasswordValidator;
 import com.spacecodee.securityspacee.auth.application.port.out.ISessionService;
 import com.spacecodee.securityspacee.auth.application.port.out.ITokenService;
 import com.spacecodee.securityspacee.auth.application.port.out.IUserAuthenticationPort;
-import com.spacecodee.securityspacee.auth.application.port.out.IssueTokenCommand;
 import com.spacecodee.securityspacee.auth.application.port.out.TokenPair;
 import com.spacecodee.securityspacee.auth.application.response.AuthenticationResponse;
 import com.spacecodee.securityspacee.auth.domain.event.AccountLockedEvent;
@@ -191,7 +191,7 @@ public final class LoginUseCase implements ILoginUseCase {
     }
 
     private TokenPair issueTokens(AuthenticationResult authResult) {
-        IssueTokenCommand tokenCommand = new IssueTokenCommand(
+        AuthIssueTokenCommand tokenCommand = new AuthIssueTokenCommand(
                 authResult.getUserId(),
                 authResult.getUsername(),
                 authResult.getEmail(),
@@ -202,7 +202,7 @@ public final class LoginUseCase implements ILoginUseCase {
     }
 
     private void createSession(Integer userId, @NonNull LoginCommand command) {
-        CreateSessionCommand sessionCommand = new CreateSessionCommand(
+        AuthCreateSessionCommand sessionCommand = new AuthCreateSessionCommand(
                 userId,
                 command.ipAddress(),
                 command.userAgent(),
