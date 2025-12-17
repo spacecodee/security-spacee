@@ -157,11 +157,15 @@ application:
   # JWT Configuration - MUST be overridden in profile files
   jwt:
     issuer: security-spacee
+    audience: security-spacee-api
+    access-expiration: 900        # 15 minutes in seconds
+    refresh-expiration: 604800    # 7 days in seconds
 
   # Security - Sensible defaults, override as needed
   security:
-    max-login-attempts: 5
-    account-lock-duration: 900000  # 15 minutes in ms
+    allowed-origins: "*"
+    max-login-attempts: 10
+    account-lock-duration: 15  # Duration in minutes
 
   # Cache TTL (milliseconds) - Sensible defaults
   cache:
@@ -170,6 +174,12 @@ application:
       user-roles: 900000       # 15 minutes
       permissions: 3600000     # 1 hour
       jwt-blacklist: 2592000000  # 30 days
+
+# =============================================================================
+# SESSION CONFIGURATION
+# =============================================================================
+session:
+  expiration: 24h  # Session expiration time (24 hours)
 
 # =============================================================================
 # LOGGING CONFIGURATION (SLF4J)

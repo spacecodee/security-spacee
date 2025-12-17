@@ -16,6 +16,21 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.spacecodee.securityspacee.auth.domain.exception.AccountInactiveException;
+import com.spacecodee.securityspacee.auth.domain.exception.AccountLockedException;
+import com.spacecodee.securityspacee.auth.domain.exception.InvalidCredentialsException;
+import com.spacecodee.securityspacee.auth.domain.exception.UserNotFoundException;
+import com.spacecodee.securityspacee.jwttoken.domain.exception.InvalidSignatureException;
+import com.spacecodee.securityspacee.jwttoken.domain.exception.InvalidTokenException;
+import com.spacecodee.securityspacee.jwttoken.domain.exception.InvalidTokenTypeException;
+import com.spacecodee.securityspacee.jwttoken.domain.exception.TokenAlreadyRevokedException;
+import com.spacecodee.securityspacee.jwttoken.domain.exception.TokenExpiredException;
+import com.spacecodee.securityspacee.jwttoken.domain.exception.TokenHasNotExpiredException;
+import com.spacecodee.securityspacee.jwttoken.domain.exception.TokenNotFoundException;
+import com.spacecodee.securityspacee.jwttoken.domain.exception.TokenRevokedException;
+import com.spacecodee.securityspacee.session.domain.exception.SessionExpiredException;
+import com.spacecodee.securityspacee.session.domain.exception.SessionInvalidStateException;
+import com.spacecodee.securityspacee.session.domain.exception.SessionNotFoundException;
 import com.spacecodee.securityspacee.user.domain.exception.DuplicateEmailException;
 import com.spacecodee.securityspacee.user.domain.exception.DuplicateUsernameException;
 import com.spacecodee.securityspacee.user.domain.exception.InvalidUserDataException;
@@ -147,6 +162,359 @@ public class GlobalExceptionHandler {
         ProblemDetail problem = ProblemDetail.builder()
                 .type(PROBLEM_BASE_URI + "invalid-argument")
                 .title(messageSource.getMessage("validation.error.invalid_argument", null, locale))
+                .status(HttpStatus.BAD_REQUEST.value())
+                .detail(message)
+                .instance(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem);
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleUserNotFound(
+            @NonNull UserNotFoundException ex,
+            @NonNull HttpServletRequest request) {
+        log.warn("UserNotFoundException: {}", ex.getMessage());
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String message = messageSource.getMessage(
+                ex.getMessage(),
+                null,
+                ex.getMessage(),
+                locale);
+
+        ProblemDetail problem = ProblemDetail.builder()
+                .type(PROBLEM_BASE_URI + "user-not-found")
+                .title(messageSource.getMessage("auth.exception.user_not_found", null, locale))
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .detail(message)
+                .instance(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem);
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidCredentials(
+            @NonNull InvalidCredentialsException ex,
+            @NonNull HttpServletRequest request) {
+        log.warn("InvalidCredentialsException: {}", ex.getMessage());
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String message = messageSource.getMessage(
+                ex.getMessage(),
+                null,
+                ex.getMessage(),
+                locale);
+
+        ProblemDetail problem = ProblemDetail.builder()
+                .type(PROBLEM_BASE_URI + "invalid-credentials")
+                .title(messageSource.getMessage("auth.exception.invalid_credentials", null, locale))
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .detail(message)
+                .instance(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem);
+    }
+
+    @ExceptionHandler(AccountInactiveException.class)
+    public ResponseEntity<ProblemDetail> handleAccountInactive(
+            @NonNull AccountInactiveException ex,
+            @NonNull HttpServletRequest request) {
+        log.warn("AccountInactiveException: {}", ex.getMessage());
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String message = messageSource.getMessage(
+                ex.getMessage(),
+                null,
+                ex.getMessage(),
+                locale);
+
+        ProblemDetail problem = ProblemDetail.builder()
+                .type(PROBLEM_BASE_URI + "account-inactive")
+                .title(messageSource.getMessage("auth.exception.account_inactive", null, locale))
+                .status(HttpStatus.FORBIDDEN.value())
+                .detail(message)
+                .instance(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(problem);
+    }
+
+    @ExceptionHandler(AccountLockedException.class)
+    public ResponseEntity<ProblemDetail> handleAccountLocked(
+            @NonNull AccountLockedException ex,
+            @NonNull HttpServletRequest request) {
+        log.warn("AccountLockedException: Account locked until {}", ex.getLockedUntil());
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String message = messageSource.getMessage(
+                ex.getMessage(),
+                null,
+                ex.getMessage(),
+                locale);
+
+        ProblemDetail problem = ProblemDetail.builder()
+                .type(PROBLEM_BASE_URI + "account-locked")
+                .title(messageSource.getMessage("auth.exception.account_locked",
+                        new Object[]{ex.getLockedUntil().toString()}, locale))
+                .status(HttpStatus.LOCKED.value())
+                .detail(message)
+                .instance(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.LOCKED).body(problem);
+    }
+
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidToken(
+            @NonNull InvalidTokenException ex,
+            @NonNull HttpServletRequest request) {
+        log.warn("InvalidTokenException: {}", ex.getMessage());
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String message = messageSource.getMessage(
+                ex.getMessage(),
+                null,
+                locale);
+
+        ProblemDetail problem = ProblemDetail.builder()
+                .type(PROBLEM_BASE_URI + "invalid-token")
+                .title(messageSource.getMessage("error.invalid_token.title", null, locale))
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .detail(message)
+                .instance(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem);
+    }
+
+    @ExceptionHandler(TokenExpiredException.class)
+    public ResponseEntity<ProblemDetail> handleTokenExpired(
+            @NonNull TokenExpiredException ex,
+            @NonNull HttpServletRequest request) {
+        log.warn("TokenExpiredException: expiredAt={}", ex.getExpiredAt());
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String message = messageSource.getMessage(
+                ex.getMessage(),
+                null,
+                locale);
+
+        ProblemDetail problem = ProblemDetail.builder()
+                .type(PROBLEM_BASE_URI + "token-expired")
+                .title(messageSource.getMessage("error.token_expired.title", null, locale))
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .detail(message)
+                .instance(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem);
+    }
+
+    @ExceptionHandler(TokenRevokedException.class)
+    public ResponseEntity<ProblemDetail> handleTokenRevoked(
+            @NonNull TokenRevokedException ex,
+            @NonNull HttpServletRequest request) {
+        log.warn("TokenRevokedException: jti={}, reason={}", ex.getJti(), ex.getReason());
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String message = messageSource.getMessage(
+                ex.getMessage(),
+                null,
+                locale);
+
+        ProblemDetail problem = ProblemDetail.builder()
+                .type(PROBLEM_BASE_URI + "token-revoked")
+                .title(messageSource.getMessage("error.token_revoked.title", null, locale))
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .detail(message)
+                .instance(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem);
+    }
+
+    @ExceptionHandler(TokenNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleTokenNotFound(
+            @NonNull TokenNotFoundException ex,
+            @NonNull HttpServletRequest request) {
+        log.warn("TokenNotFoundException: {}", ex.getMessage());
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String message = messageSource.getMessage(
+                ex.getMessage(),
+                null,
+                locale);
+
+        ProblemDetail problem = ProblemDetail.builder()
+                .type(PROBLEM_BASE_URI + "token-not-found")
+                .title(messageSource.getMessage("error.token_not_found.title", null, locale))
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .detail(message)
+                .instance(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem);
+    }
+
+    @ExceptionHandler(InvalidSignatureException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidSignature(
+            @NonNull InvalidSignatureException ex,
+            @NonNull HttpServletRequest request) {
+        log.warn("InvalidSignatureException: {}", ex.getMessage());
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String message = messageSource.getMessage(
+                ex.getMessage(),
+                null,
+                locale);
+
+        ProblemDetail problem = ProblemDetail.builder()
+                .type(PROBLEM_BASE_URI + "invalid-signature")
+                .title(messageSource.getMessage("error.invalid_signature.title", null, locale))
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .detail(message)
+                .instance(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem);
+    }
+
+    @ExceptionHandler(TokenAlreadyRevokedException.class)
+    public ResponseEntity<ProblemDetail> handleTokenAlreadyRevoked(
+            @NonNull TokenAlreadyRevokedException ex,
+            @NonNull HttpServletRequest request) {
+        log.warn("TokenAlreadyRevokedException: {}", ex.getMessage());
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String message = messageSource.getMessage(
+                ex.getMessage(),
+                null,
+                locale);
+
+        ProblemDetail problem = ProblemDetail.builder()
+                .type(PROBLEM_BASE_URI + "token-already-revoked")
+                .title(messageSource.getMessage("jwttoken.exception.token_already_revoked_title", null, locale))
+                .status(HttpStatus.CONFLICT.value())
+                .detail(message)
+                .instance(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(problem);
+    }
+
+    @ExceptionHandler(TokenHasNotExpiredException.class)
+    public ResponseEntity<ProblemDetail> handleTokenHasNotExpired(
+            @NonNull TokenHasNotExpiredException ex,
+            @NonNull HttpServletRequest request) {
+        log.warn("TokenHasNotExpiredException: {}", ex.getMessage());
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String message = messageSource.getMessage(
+                ex.getMessage(),
+                null,
+                locale);
+
+        ProblemDetail problem = ProblemDetail.builder()
+                .type(PROBLEM_BASE_URI + "token-has-not-expired")
+                .title(messageSource.getMessage("jwttoken.exception.token_has_not_expired_title", null, locale))
+                .status(HttpStatus.BAD_REQUEST.value())
+                .detail(message)
+                .instance(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem);
+    }
+
+    @ExceptionHandler(InvalidTokenTypeException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidTokenType(
+            @NonNull InvalidTokenTypeException ex,
+            @NonNull HttpServletRequest request) {
+        log.warn("InvalidTokenTypeException: {}", ex.getMessage());
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String message = messageSource.getMessage(
+                ex.getMessage(),
+                null,
+                locale);
+
+        ProblemDetail problem = ProblemDetail.builder()
+                .type(PROBLEM_BASE_URI + "invalid-token-type")
+                .title(messageSource.getMessage("jwttoken.exception.invalid_token_type_title", null, locale))
+                .status(HttpStatus.BAD_REQUEST.value())
+                .detail(message)
+                .instance(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem);
+    }
+
+    @ExceptionHandler(SessionNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleSessionNotFound(
+            @NonNull SessionNotFoundException ex,
+            @NonNull HttpServletRequest request) {
+        log.warn("SessionNotFoundException: {}", ex.getMessage());
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String message = messageSource.getMessage(
+                ex.getMessage(),
+                null,
+                ex.getMessage(),
+                locale);
+
+        ProblemDetail problem = ProblemDetail.builder()
+                .type(PROBLEM_BASE_URI + "session-not-found")
+                .title(messageSource.getMessage("session.error.not_found", null, locale))
+                .status(HttpStatus.NOT_FOUND.value())
+                .detail(message)
+                .instance(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
+    }
+
+    @ExceptionHandler(SessionExpiredException.class)
+    public ResponseEntity<ProblemDetail> handleSessionExpired(
+            @NonNull SessionExpiredException ex,
+            @NonNull HttpServletRequest request) {
+        log.warn("SessionExpiredException: {}", ex.getMessage());
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String message = messageSource.getMessage(
+                ex.getMessage(),
+                null,
+                ex.getMessage(),
+                locale);
+
+        ProblemDetail problem = ProblemDetail.builder()
+                .type(PROBLEM_BASE_URI + "session-expired")
+                .title(messageSource.getMessage("session.error.expired", null, locale))
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .detail(message)
+                .instance(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem);
+    }
+
+    @ExceptionHandler(SessionInvalidStateException.class)
+    public ResponseEntity<ProblemDetail> handleSessionInvalidState(
+            @NonNull SessionInvalidStateException ex,
+            @NonNull HttpServletRequest request) {
+        log.warn("SessionInvalidStateException: {}", ex.getMessage());
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String message = messageSource.getMessage(
+                ex.getMessage(),
+                null,
+                ex.getMessage(),
+                locale);
+
+        ProblemDetail problem = ProblemDetail.builder()
+                .type(PROBLEM_BASE_URI + "session-invalid-state")
+                .title(messageSource.getMessage("session.error.invalid_state", null, locale))
                 .status(HttpStatus.BAD_REQUEST.value())
                 .detail(message)
                 .instance(request.getRequestURI())
