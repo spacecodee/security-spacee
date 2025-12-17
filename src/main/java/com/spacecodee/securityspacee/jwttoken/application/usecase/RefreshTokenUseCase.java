@@ -16,8 +16,10 @@ import com.spacecodee.securityspacee.jwttoken.application.port.in.IRefreshTokenU
 import com.spacecodee.securityspacee.jwttoken.application.port.out.IClockService;
 import com.spacecodee.securityspacee.jwttoken.application.port.out.IJwtCryptoService;
 import com.spacecodee.securityspacee.jwttoken.application.response.TokenPairResponse;
+import com.spacecodee.securityspacee.jwttoken.domain.event.RefreshTokenReuseDetectedEvent;
 import com.spacecodee.securityspacee.jwttoken.domain.event.TokenRefreshedEvent;
 import com.spacecodee.securityspacee.jwttoken.domain.exception.InvalidTokenException;
+import com.spacecodee.securityspacee.jwttoken.domain.exception.RevokedTokenException;
 import com.spacecodee.securityspacee.jwttoken.domain.model.JwtToken;
 import com.spacecodee.securityspacee.jwttoken.domain.repository.IJwtTokenRepository;
 import com.spacecodee.securityspacee.jwttoken.domain.valueobject.Claims;
@@ -66,12 +68,30 @@ public final class RefreshTokenUseCase implements IRefreshTokenUseCase {
             throw new InvalidTokenException(this.getMessage("jwttoken.exception.not_refresh_token"));
         }
 
+        if (refreshToken.getState() == TokenState.REVOKED) {
+            RefreshTokenReuseDetectedEvent refreshTokenReuseDetectedEvent = RefreshTokenReuseDetectedEvent.builder()
+                    .refreshTokenJti(refreshToken.getJti().getValue().toString())
+                    .userId(refreshToken.getUserId())
+                    .attemptedAt(this.clockService.now())
+                    .ipAddress(command.ipAddress())
+                    .sessionId(refreshToken.getSessionId())
+                    .reason("jwttoken.event.refresh_token_reuse_detected")
+                    .build();
+
+            this.eventPublisher.publishEvent(refreshTokenReuseDetectedEvent);
+
+            String message = this.getMessage("jwttoken.exception.refresh_token_revoked");
+            throw new RevokedTokenException(message);
+        }
+
         if (!refreshToken.isActive()) {
             throw new InvalidTokenException(this.getMessage("jwttoken.exception.token_not_active"));
         }
 
-        Jti newAccessJti = Jti.generate();
         Instant now = this.clockService.now();
+        JwtToken validatedRefreshToken = refreshToken.refresh(now);
+
+        Jti newAccessJti = Jti.generate();
         Instant accessExpiry = this.clockService
                 .nowPlusDuration(Duration.ofSeconds(this.jwtProperties.accessExpiration()));
 
@@ -94,23 +114,28 @@ public final class RefreshTokenUseCase implements IRefreshTokenUseCase {
                 .claims(accessClaims)
                 .clientIp(command.ipAddress())
                 .userAgent(command.userAgent())
+                .refreshCount(0)
+                .usageCount(0)
                 .build();
 
         this.jwtTokenRepository.save(newAccessToken);
 
-        JwtToken updatedRefreshToken = refreshToken.incrementRefresh(now);
-        this.jwtTokenRepository.save(updatedRefreshToken);
+        this.jwtTokenRepository.save(validatedRefreshToken);
 
-        TokenRefreshedEvent event = TokenRefreshedEvent.builder()
+        this.revokeOldAccessToken(refreshToken.getSessionId());
+
+        TokenRefreshedEvent tokenRefreshedEvent = TokenRefreshedEvent.builder()
                 .oldAccessTokenJti(null)
                 .newAccessTokenJti(newAccessJti.getValue().toString())
                 .refreshTokenJti(refreshJti.getValue().toString())
-                .userId(updatedRefreshToken.getUserId())
+                .userId(refreshToken.getUserId())
+                .sessionId(refreshToken.getSessionId())
                 .refreshedAt(now)
-                .refreshCount(updatedRefreshToken.getRefreshCount())
+                .refreshCount(validatedRefreshToken.getRefreshCount())
+                .newAccessTokenExpiresAt(accessExpiry)
                 .build();
 
-        this.eventPublisher.publishEvent(event);
+        this.eventPublisher.publishEvent(tokenRefreshedEvent);
 
         return new TokenPairResponse(
                 newAccessTokenRaw,
@@ -118,8 +143,19 @@ public final class RefreshTokenUseCase implements IRefreshTokenUseCase {
                 this.jwtProperties.accessExpiration());
     }
 
+    private void revokeOldAccessToken(@NonNull String sessionId) {
+        this.jwtTokenRepository.findLatestAccessTokenBySessionId(sessionId)
+                .ifPresent(oldAccessToken -> {
+                    if (oldAccessToken.isActive()) {
+                        JwtToken expiredToken = oldAccessToken.markAsExpired(this.clockService.now());
+                        this.jwtTokenRepository.save(expiredToken);
+                    }
+                });
+    }
+
     private String getMessage(String code, Object... args) {
         Locale locale = LocaleContextHolder.getLocale();
-        return this.messageSource.getMessage(code, args, code, locale);
+        String message = this.messageSource.getMessage(code, args, code, locale);
+        return message != null ? message : code;
     }
 }

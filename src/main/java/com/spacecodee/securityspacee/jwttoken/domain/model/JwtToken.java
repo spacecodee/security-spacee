@@ -7,7 +7,9 @@ import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.NonNull;
 
 import com.spacecodee.securityspacee.jwttoken.domain.exception.InvalidTokenTypeException;
+import com.spacecodee.securityspacee.jwttoken.domain.exception.RevokedTokenException;
 import com.spacecodee.securityspacee.jwttoken.domain.exception.TokenAlreadyRevokedException;
+import com.spacecodee.securityspacee.jwttoken.domain.exception.TokenExpiredException;
 import com.spacecodee.securityspacee.jwttoken.domain.exception.TokenHasNotExpiredException;
 import com.spacecodee.securityspacee.jwttoken.domain.valueobject.Claims;
 import com.spacecodee.securityspacee.jwttoken.domain.valueobject.Jti;
@@ -108,6 +110,27 @@ public final class JwtToken {
         return this.toBuilder()
                 .refreshCount((this.refreshCount != null ? this.refreshCount : 0) + 1)
                 .lastRefreshAt(refreshedAt)
+                .build();
+    }
+
+    @Contract("_ -> new")
+    public @NonNull JwtToken refresh(@NonNull Instant now) {
+        if (this.tokenType != TokenType.REFRESH) {
+            throw new InvalidTokenTypeException("jwttoken.exception.only_refresh_tokens_can_refresh");
+        }
+
+        if (this.state != TokenState.ACTIVE) {
+            throw new RevokedTokenException(
+                    "jwttoken.exception.cannot_refresh_token_state_" + this.state.name().toLowerCase());
+        }
+
+        if (this.isExpired()) {
+            throw new TokenExpiredException("jwttoken.exception.refresh_token_expired", this.expiryDate);
+        }
+
+        return this.toBuilder()
+                .refreshCount((this.refreshCount != null ? this.refreshCount : 0) + 1)
+                .lastRefreshAt(now)
                 .build();
     }
 
