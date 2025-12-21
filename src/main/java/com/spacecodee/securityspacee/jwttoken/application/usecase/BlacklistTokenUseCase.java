@@ -3,8 +3,8 @@ package com.spacecodee.securityspacee.jwttoken.application.usecase;
 import org.jspecify.annotations.NonNull;
 import org.springframework.context.ApplicationEventPublisher;
 
-import com.spacecodee.securityspacee.jwttoken.application.command.RevokeTokenCommand;
-import com.spacecodee.securityspacee.jwttoken.application.port.in.IRevokeTokenUseCase;
+import com.spacecodee.securityspacee.jwttoken.application.command.BlacklistTokenCommand;
+import com.spacecodee.securityspacee.jwttoken.application.port.in.IBlacklistTokenUseCase;
 import com.spacecodee.securityspacee.jwttoken.application.port.out.IClockService;
 import com.spacecodee.securityspacee.jwttoken.domain.event.TokenRevokedEvent;
 import com.spacecodee.securityspacee.jwttoken.domain.exception.TokenNotFoundException;
@@ -12,14 +12,14 @@ import com.spacecodee.securityspacee.jwttoken.domain.model.JwtToken;
 import com.spacecodee.securityspacee.jwttoken.domain.repository.IJwtTokenRepository;
 import com.spacecodee.securityspacee.shared.application.port.out.IMessageResolverPort;
 
-public final class RevokeTokenUseCase implements IRevokeTokenUseCase {
+public final class BlacklistTokenUseCase implements IBlacklistTokenUseCase {
 
     private final IJwtTokenRepository jwtTokenRepository;
     private final IClockService clockService;
     private final ApplicationEventPublisher eventPublisher;
     private final IMessageResolverPort messageResolverPort;
 
-    public RevokeTokenUseCase(
+    public BlacklistTokenUseCase(
             IJwtTokenRepository jwtTokenRepository,
             IClockService clockService,
             ApplicationEventPublisher eventPublisher,
@@ -31,15 +31,16 @@ public final class RevokeTokenUseCase implements IRevokeTokenUseCase {
     }
 
     @Override
-    public void execute(@NonNull RevokeTokenCommand command) {
+    public void execute(@NonNull BlacklistTokenCommand command) {
         JwtToken token = this.jwtTokenRepository.findByJti(command.jti())
                 .orElseThrow(() -> new TokenNotFoundException(this.getMessage("jwttoken.exception.token_not_found")));
 
-        JwtToken revokedToken = token.revoke(command.revokedBy(), command.reason(), this.clockService.now());
+        JwtToken blacklistedToken = token.blacklist(command.blacklistedBy(), command.reason(),
+                this.clockService.now());
 
-        this.jwtTokenRepository.save(revokedToken);
+        this.jwtTokenRepository.save(blacklistedToken);
 
-        this.publishTokenRevokedEvent(revokedToken);
+        this.publishTokenRevokedEvent(blacklistedToken);
     }
 
     private void publishTokenRevokedEvent(@NonNull JwtToken token) {

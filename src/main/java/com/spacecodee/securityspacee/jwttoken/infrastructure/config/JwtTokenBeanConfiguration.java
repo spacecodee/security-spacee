@@ -4,20 +4,29 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.spacecodee.securityspacee.jwttoken.application.listener.RevokeAllTokensOnPasswordChangeListener;
+import com.spacecodee.securityspacee.jwttoken.application.listener.RevokeTokensOnLogoutEventListener;
+import com.spacecodee.securityspacee.jwttoken.application.listener.RevokeTokensOnSessionExpiredEventListener;
 import com.spacecodee.securityspacee.jwttoken.application.mapper.IClaimsMapper;
 import com.spacecodee.securityspacee.jwttoken.application.mapper.ITokenPairMapper;
 import com.spacecodee.securityspacee.jwttoken.application.mapper.ITokenValidationResponseMapper;
 import com.spacecodee.securityspacee.jwttoken.application.mapper.impl.ClaimsMapperImpl;
 import com.spacecodee.securityspacee.jwttoken.application.mapper.impl.TokenPairMapperImpl;
 import com.spacecodee.securityspacee.jwttoken.application.mapper.impl.TokenValidationResponseMapperImpl;
+import com.spacecodee.securityspacee.jwttoken.application.port.in.IBlacklistTokenUseCase;
 import com.spacecodee.securityspacee.jwttoken.application.port.in.IIssueTokenUseCase;
 import com.spacecodee.securityspacee.jwttoken.application.port.in.IRefreshTokenUseCase;
+import com.spacecodee.securityspacee.jwttoken.application.port.in.IRevokeAllSessionTokensUseCase;
+import com.spacecodee.securityspacee.jwttoken.application.port.in.IRevokeAllUserTokensUseCase;
 import com.spacecodee.securityspacee.jwttoken.application.port.in.IRevokeTokenUseCase;
 import com.spacecodee.securityspacee.jwttoken.application.port.in.IValidateTokenUseCase;
 import com.spacecodee.securityspacee.jwttoken.application.port.out.IClockService;
 import com.spacecodee.securityspacee.jwttoken.application.port.out.IJwtCryptoService;
+import com.spacecodee.securityspacee.jwttoken.application.usecase.BlacklistTokenUseCase;
 import com.spacecodee.securityspacee.jwttoken.application.usecase.IssueTokenUseCase;
 import com.spacecodee.securityspacee.jwttoken.application.usecase.RefreshTokenUseCase;
+import com.spacecodee.securityspacee.jwttoken.application.usecase.RevokeAllSessionTokensUseCase;
+import com.spacecodee.securityspacee.jwttoken.application.usecase.RevokeAllUserTokensUseCase;
 import com.spacecodee.securityspacee.jwttoken.application.usecase.RevokeTokenUseCase;
 import com.spacecodee.securityspacee.jwttoken.application.usecase.ValidateTokenUseCase;
 import com.spacecodee.securityspacee.jwttoken.domain.repository.IJwtTokenRepository;
@@ -136,5 +145,58 @@ public class JwtTokenBeanConfiguration {
                 clockService,
                 eventPublisher,
                 messageResolverPort);
+    }
+
+    @Bean
+    public IRevokeAllSessionTokensUseCase revokeAllSessionTokensUseCase(
+            IJwtTokenRepository jwtTokenRepository,
+            IClockService clockService,
+            ApplicationEventPublisher eventPublisher) {
+        return new RevokeAllSessionTokensUseCase(
+                jwtTokenRepository,
+                clockService,
+                eventPublisher);
+    }
+
+    @Bean
+    public IRevokeAllUserTokensUseCase revokeAllUserTokensUseCase(
+            IJwtTokenRepository jwtTokenRepository,
+            IClockService clockService,
+            ApplicationEventPublisher eventPublisher) {
+        return new RevokeAllUserTokensUseCase(
+                jwtTokenRepository,
+                clockService,
+                eventPublisher);
+    }
+
+    @Bean
+    public IBlacklistTokenUseCase blacklistTokenUseCase(
+            IJwtTokenRepository jwtTokenRepository,
+            IClockService clockService,
+            ApplicationEventPublisher eventPublisher,
+            IMessageResolverPort messageResolverPort) {
+        return new BlacklistTokenUseCase(
+                jwtTokenRepository,
+                clockService,
+                eventPublisher,
+                messageResolverPort);
+    }
+
+    @Bean
+    public RevokeTokensOnLogoutEventListener revokeTokensOnLogoutEventListener(
+            IRevokeAllSessionTokensUseCase revokeAllSessionTokensUseCase) {
+        return new RevokeTokensOnLogoutEventListener(revokeAllSessionTokensUseCase);
+    }
+
+    @Bean
+    public RevokeTokensOnSessionExpiredEventListener revokeTokensOnSessionExpiredEventListener(
+            IRevokeAllSessionTokensUseCase revokeAllSessionTokensUseCase) {
+        return new RevokeTokensOnSessionExpiredEventListener(revokeAllSessionTokensUseCase);
+    }
+
+    @Bean
+    public RevokeAllTokensOnPasswordChangeListener revokeAllTokensOnPasswordChangeListener(
+            IRevokeAllUserTokensUseCase revokeAllUserTokensUseCase) {
+        return new RevokeAllTokensOnPasswordChangeListener(revokeAllUserTokensUseCase);
     }
 }

@@ -5,47 +5,42 @@ import java.util.Objects;
 
 import org.jspecify.annotations.NonNull;
 
-import com.spacecodee.securityspacee.jwttoken.domain.valueobject.TokenState;
-import com.spacecodee.securityspacee.jwttoken.domain.valueobject.TokenType;
-
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 @Builder
-public final class TokenRevokedEvent {
+public final class AllSessionTokensRevokedEvent {
 
-    private final String jti;
-    private final TokenType tokenType;
-    private final Integer userId;
     private final String sessionId;
+    private final Integer userId;
+    private final Integer tokensRevokedCount;
     private final Instant revokedAt;
     private final Integer revokedBy;
     private final String reason;
-    private final TokenState state;
 
     @Override
     public boolean equals(Object o) {
         if (this == o)
             return true;
-        if (o == null || getClass() != o.getClass())
+        if (o == null || this.getClass() != o.getClass())
             return false;
-        TokenRevokedEvent that = (TokenRevokedEvent) o;
-        return Objects.equals(this.jti, that.jti) &&
+        AllSessionTokensRevokedEvent that = (AllSessionTokensRevokedEvent) o;
+        return Objects.equals(this.sessionId, that.sessionId) &&
                 Objects.equals(this.revokedAt, that.revokedAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.jti, this.revokedAt);
+        return Objects.hash(this.sessionId, this.revokedAt);
     }
 
     @Override
     public @NonNull String toString() {
-        return "TokenRevokedEvent{" +
-                "jti='" + this.jti + '\'' +
-                ", tokenType=" + this.tokenType +
+        return "AllSessionTokensRevokedEvent{" +
+                "sessionId='" + this.sessionId + '\'' +
                 ", userId=" + this.userId +
+                ", tokensRevokedCount=" + this.tokensRevokedCount +
                 ", reason='" + this.reason + '\'' +
                 '}';
     }

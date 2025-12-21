@@ -20,6 +20,9 @@ public interface SpringJpaJwtTokenRepository extends JpaRepository<JwtTokenEntit
     List<JwtTokenEntity> findBySessionId(@NonNull String sessionId);
 
     @NonNull
+    List<JwtTokenEntity> findByUserId(@NonNull Integer userId);
+
+    @NonNull
     List<JwtTokenEntity> findByUserIdAndState(@NonNull Integer userId, @NonNull TokenState state);
 
     @Modifying
