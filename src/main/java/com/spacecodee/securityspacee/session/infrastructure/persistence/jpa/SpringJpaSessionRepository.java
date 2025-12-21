@@ -19,6 +19,8 @@ public interface SpringJpaSessionRepository extends JpaRepository<SessionEntity,
     @NonNull
     List<SessionEntity> findByUserIdAndIsActive(@NonNull Integer userId, @NonNull Boolean isActive);
 
+    boolean existsByUserIdAndDeviceFingerprint(@NonNull Integer userId, @NonNull String deviceFingerprint);
+
     void deleteByUserId(@NonNull Integer userId);
 
     boolean existsBySessionToken(@NonNull String sessionToken);

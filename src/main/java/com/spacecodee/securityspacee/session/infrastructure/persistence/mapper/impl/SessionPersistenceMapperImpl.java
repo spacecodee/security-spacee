@@ -5,6 +5,8 @@ import java.time.Instant;
 import org.jspecify.annotations.NonNull;
 
 import com.spacecodee.securityspacee.session.domain.model.Session;
+import com.spacecodee.securityspacee.session.domain.valueobject.DeviceFingerprint;
+import com.spacecodee.securityspacee.session.domain.valueobject.Location;
 import com.spacecodee.securityspacee.session.domain.valueobject.LogoutInfo;
 import com.spacecodee.securityspacee.session.domain.valueobject.LogoutReason;
 import com.spacecodee.securityspacee.session.domain.valueobject.SessionId;
@@ -14,6 +16,7 @@ import com.spacecodee.securityspacee.session.domain.valueobject.SessionToken;
 import com.spacecodee.securityspacee.session.infrastructure.persistence.jpa.LogoutReasonDb;
 import com.spacecodee.securityspacee.session.infrastructure.persistence.jpa.SessionEntity;
 import com.spacecodee.securityspacee.session.infrastructure.persistence.mapper.ISessionPersistenceMapper;
+import org.jspecify.annotations.Nullable;
 
 public final class SessionPersistenceMapperImpl implements ISessionPersistenceMapper {
 
@@ -21,6 +24,9 @@ public final class SessionPersistenceMapperImpl implements ISessionPersistenceMa
     public @NonNull SessionEntity toEntity(@NonNull Session session) {
         var logoutInfo = session.getLogoutInfo();
         boolean isActive = session.getState() == SessionState.ACTIVE;
+
+        final Location location = session.getMetadata().getLocation();
+        final DeviceFingerprint fingerprint = session.getMetadata().getDeviceFingerprint();
 
         return SessionEntity.builder()
                 .sessionId(session.getSessionId().toString())
@@ -31,6 +37,14 @@ public final class SessionPersistenceMapperImpl implements ISessionPersistenceMa
                 .createdAt(session.getMetadata().getCreatedAt())
                 .expiresAt(session.getMetadata().getExpiresAt())
                 .lastActivityAt(session.getMetadata().getLastActivityAt())
+                .deviceFingerprint(fingerprint != null ? fingerprint.value() : null)
+                .deviceName(session.getMetadata().getDeviceName())
+                .locationCity(location != null ? location.city() : null)
+                .locationCountry(location != null ? location.country() : null)
+                .locationCountryCode(location != null ? location.countryCode() : null)
+                .locationLatitude(location != null ? location.latitude() : null)
+                .locationLongitude(location != null ? location.longitude() : null)
+                .isTrustedDevice(session.getMetadata().isTrustedDevice())
                 .isActive(isActive)
                 .logoutAt(logoutInfo != null ? logoutInfo.getLogoutAt() : null)
                 .logoutReason(logoutInfo != null ? this.toLogoutReasonDb(logoutInfo.getLogoutReason()) : null)
@@ -39,12 +53,21 @@ public final class SessionPersistenceMapperImpl implements ISessionPersistenceMa
 
     @Override
     public @NonNull Session toDomain(@NonNull SessionEntity entity) {
+        final Location location = this.buildLocation(entity);
+        final DeviceFingerprint fingerprint = entity.getDeviceFingerprint() != null
+                ? new DeviceFingerprint(entity.getDeviceFingerprint())
+                : null;
+
         SessionMetadata metadata = SessionMetadata.builder()
                 .ipAddress(entity.getIpAddress())
                 .userAgent(entity.getUserAgent())
                 .createdAt(entity.getCreatedAt())
                 .expiresAt(entity.getExpiresAt())
                 .lastActivityAt(entity.getLastActivityAt())
+                .deviceFingerprint(fingerprint)
+                .deviceName(entity.getDeviceName())
+                .location(location)
+                .isTrustedDevice(Boolean.TRUE.equals(entity.getIsTrustedDevice()))
                 .build();
 
         LogoutInfo logoutInfo = null;
@@ -65,6 +88,20 @@ public final class SessionPersistenceMapperImpl implements ISessionPersistenceMa
                 .state(state)
                 .logoutInfo(logoutInfo)
                 .build();
+    }
+
+    private @Nullable Location buildLocation(@NonNull SessionEntity entity) {
+        if (entity.getLocationCity() != null && entity.getLocationCountry() != null
+                && entity.getLocationCountryCode() != null) {
+            return Location.builder()
+                    .city(entity.getLocationCity())
+                    .country(entity.getLocationCountry())
+                    .countryCode(entity.getLocationCountryCode())
+                    .latitude(entity.getLocationLatitude())
+                    .longitude(entity.getLocationLongitude())
+                    .build();
+        }
+        return null;
     }
 
     private @NonNull SessionState toState(@NonNull Boolean isActive, Instant logoutAt, LogoutReasonDb logoutReason) {

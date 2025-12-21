@@ -48,6 +48,30 @@ public final class SessionEntity {
     @Column(name = "last_activity_at", nullable = false)
     private Instant lastActivityAt;
 
+    @Column(name = "device_fingerprint", length = 32)
+    private String deviceFingerprint;
+
+    @Column(name = "device_name", length = 255)
+    private String deviceName;
+
+    @Column(name = "location_city", length = 100)
+    private String locationCity;
+
+    @Column(name = "location_country", length = 100)
+    private String locationCountry;
+
+    @Column(name = "location_country_code", length = 3)
+    private String locationCountryCode;
+
+    @Column(name = "location_latitude")
+    private Double locationLatitude;
+
+    @Column(name = "location_longitude")
+    private Double locationLongitude;
+
+    @Column(name = "is_trusted_device", nullable = false)
+    private Boolean isTrustedDevice;
+
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
@@ -100,5 +124,37 @@ public final class SessionEntity {
 
     public @NonNull SessionEntity withLogoutReason(LogoutReasonDb logoutReason) {
         return this.toBuilder().logoutReason(logoutReason).build();
+    }
+
+    public @NonNull SessionEntity withDeviceFingerprint(String deviceFingerprint) {
+        return this.toBuilder().deviceFingerprint(deviceFingerprint).build();
+    }
+
+    public @NonNull SessionEntity withDeviceName(String deviceName) {
+        return this.toBuilder().deviceName(deviceName).build();
+    }
+
+    public @NonNull SessionEntity withLocationCity(String locationCity) {
+        return this.toBuilder().locationCity(locationCity).build();
+    }
+
+    public @NonNull SessionEntity withLocationCountry(String locationCountry) {
+        return this.toBuilder().locationCountry(locationCountry).build();
+    }
+
+    public @NonNull SessionEntity withLocationCountryCode(String locationCountryCode) {
+        return this.toBuilder().locationCountryCode(locationCountryCode).build();
+    }
+
+    public @NonNull SessionEntity withLocationLatitude(Double locationLatitude) {
+        return this.toBuilder().locationLatitude(locationLatitude).build();
+    }
+
+    public @NonNull SessionEntity withLocationLongitude(Double locationLongitude) {
+        return this.toBuilder().locationLongitude(locationLongitude).build();
+    }
+
+    public @NonNull SessionEntity withIsTrustedDevice(@NonNull Boolean isTrustedDevice) {
+        return this.toBuilder().isTrustedDevice(isTrustedDevice).build();
     }
 }

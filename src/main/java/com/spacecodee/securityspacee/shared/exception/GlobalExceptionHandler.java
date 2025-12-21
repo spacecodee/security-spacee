@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.spacecodee.securityspacee.auth.domain.exception.InvalidCredentialsException;
 import com.spacecodee.securityspacee.auth.domain.exception.UserAccountLockedException;
 import com.spacecodee.securityspacee.auth.domain.exception.UserNotFoundException;
+import com.spacecodee.securityspacee.session.domain.exception.MaxSessionsExceededException;
 import com.spacecodee.securityspacee.shared.exception.base.AuthenticationException;
 import com.spacecodee.securityspacee.shared.exception.base.AuthorizationException;
 import com.spacecodee.securityspacee.shared.exception.base.ConflictException;
@@ -245,6 +246,32 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity.status(HttpStatus.LOCKED).body(problem);
+    }
+
+    /**
+     * Handler for MaxSessionsExceededException (429 TOO MANY REQUESTS)
+     */
+    @ExceptionHandler(MaxSessionsExceededException.class)
+    public ResponseEntity<ProblemDetail> handleMaxSessionsExceededException(
+            @NonNull MaxSessionsExceededException ex,
+            @NonNull HttpServletRequest request) {
+        log.warn("MaxSessionsExceededException: {}", ex.getMessage());
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String title = messageSource.getMessage("session.exception.max_sessions_exceeded_title",
+                null,
+                "Maximum Sessions Exceeded",
+                locale);
+
+        ProblemDetail problem = ProblemDetail.builder()
+                .type(PROBLEM_BASE_URI + "max-sessions-exceeded")
+                .title(title)
+                .status(HttpStatus.TOO_MANY_REQUESTS.value())
+                .detail(ex.getMessage())
+                .instance(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(problem);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

@@ -4,12 +4,13 @@ import java.time.Instant;
 import java.util.Objects;
 
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-@Builder
+@Builder(toBuilder = true)
 public final class SessionMetadata {
 
     private final String ipAddress;
@@ -17,6 +18,13 @@ public final class SessionMetadata {
     private final Instant createdAt;
     private final Instant expiresAt;
     private final Instant lastActivityAt;
+    @Nullable
+    private final DeviceFingerprint deviceFingerprint;
+    @Nullable
+    private final String deviceName;
+    @Nullable
+    private final Location location;
+    private final boolean isTrustedDevice;
 
     @Override
     public boolean equals(Object o) {
@@ -41,6 +49,8 @@ public final class SessionMetadata {
                 ", userAgent='" + this.userAgent + '\'' +
                 ", createdAt=" + this.createdAt +
                 ", expiresAt=" + this.expiresAt +
+                ", deviceName='" + this.deviceName + '\'' +
+                ", isTrustedDevice=" + this.isTrustedDevice +
                 '}';
     }
 }
