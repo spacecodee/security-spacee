@@ -57,6 +57,10 @@ public final class JwtToken {
         return this.state == TokenState.BLACKLISTED;
     }
 
+    public boolean canBeUsed() {
+        return this.state == TokenState.ACTIVE && !this.isExpired();
+    }
+
     @Contract("_, _, _ -> new")
     public @NonNull JwtToken revoke(Integer revokedBy, @NonNull String reason, @NonNull Instant revokedAt) {
         if (this.isRevoked()) {
@@ -86,10 +90,17 @@ public final class JwtToken {
                 .build();
     }
 
-    @Contract("_ -> new")
-    public @NonNull JwtToken blacklist(@NonNull Instant blacklistedAt) {
+    @Contract("_, _, _ -> new")
+    public @NonNull JwtToken blacklist(Integer blacklistedBy, @NonNull String reason, @NonNull Instant blacklistedAt) {
+        RevocationInfo revInfo = RevocationInfo.builder()
+                .revokedAt(blacklistedAt)
+                .revokedBy(blacklistedBy)
+                .reason(reason)
+                .build();
+
         return this.toBuilder()
                 .state(TokenState.BLACKLISTED)
+                .revocationInfo(revInfo)
                 .build();
     }
 

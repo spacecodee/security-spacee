@@ -56,8 +56,8 @@ public class JwtTokenPersistenceAdapter implements IJwtTokenRepository {
     @NonNull
     @Transactional(readOnly = true)
     public @Unmodifiable List<JwtToken> findByUserId(@NonNull Integer userId) {
-        return springJpaRepository.findByUserIdAndState(userId, TokenState.ACTIVE).stream()
-                .map(mapper::toDomain)
+        return this.springJpaRepository.findByUserId(userId).stream()
+                .map(this.mapper::toDomain)
                 .toList();
     }
 
