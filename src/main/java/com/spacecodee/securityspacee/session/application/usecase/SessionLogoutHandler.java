@@ -6,6 +6,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import com.spacecodee.securityspacee.session.application.command.LogoutSessionCommand;
 import com.spacecodee.securityspacee.session.application.port.in.ILogoutSessionUseCase;
 import com.spacecodee.securityspacee.session.domain.event.SessionLoggedOutEvent;
+import com.spacecodee.securityspacee.session.domain.exception.InvalidSessionStateException;
 import com.spacecodee.securityspacee.session.domain.exception.SessionNotFoundException;
 import com.spacecodee.securityspacee.session.domain.model.Session;
 import com.spacecodee.securityspacee.session.domain.repository.ISessionRepository;
@@ -35,7 +36,7 @@ public final class SessionLogoutHandler implements ILogoutSessionUseCase {
 
         var logoutInfo = savedSession.getLogoutInfo();
         if (logoutInfo == null) {
-            throw new IllegalStateException("session.error.logout_info_null");
+            throw new InvalidSessionStateException("session.error.logout_info_null");
         }
 
         SessionLoggedOutEvent event = SessionLoggedOutEvent.builder()

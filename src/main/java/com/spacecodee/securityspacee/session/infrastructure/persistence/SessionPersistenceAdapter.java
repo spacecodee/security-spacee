@@ -1,5 +1,6 @@
 package com.spacecodee.securityspacee.session.infrastructure.persistence;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -8,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.spacecodee.securityspacee.session.domain.model.Session;
 import com.spacecodee.securityspacee.session.domain.repository.ISessionRepository;
+import com.spacecodee.securityspacee.session.domain.valueobject.DeviceFingerprint;
 import com.spacecodee.securityspacee.session.domain.valueobject.SessionId;
 import com.spacecodee.securityspacee.session.domain.valueobject.SessionState;
 import com.spacecodee.securityspacee.session.domain.valueobject.SessionToken;
@@ -64,6 +66,28 @@ public class SessionPersistenceAdapter implements ISessionRepository {
         return this.jpaRepository.findByUserIdAndIsActive(userId, isActive).stream()
                 .map(this.mapper::toDomain)
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public @NonNull List<Session> findActiveByUserId(@NonNull Integer userId) {
+        return this.jpaRepository.findByUserIdAndIsActive(userId, true).stream()
+                .map(this.mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public @NonNull Optional<Session> findLatestByUserId(@NonNull Integer userId) {
+        return this.jpaRepository.findByUserId(userId).stream()
+                .map(this.mapper::toDomain)
+                .max(Comparator.comparing(s -> s.getMetadata().getCreatedAt()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean existsByUserIdAndFingerprint(@NonNull Integer userId, @NonNull DeviceFingerprint fingerprint) {
+        return this.jpaRepository.existsByUserIdAndDeviceFingerprint(userId, fingerprint.value());
     }
 
     @Override

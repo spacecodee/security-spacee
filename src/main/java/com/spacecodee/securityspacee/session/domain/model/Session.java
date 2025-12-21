@@ -55,16 +55,29 @@ public final class Session {
                 .build();
     }
 
+    public @NonNull Session forceLogout(@NonNull String reason, @NonNull Instant forcedAt) {
+        Objects.requireNonNull(reason, "Reason cannot be null");
+        Objects.requireNonNull(forcedAt, "ForcedAt cannot be null");
+
+        this.validateStateTransition(SessionState.FORCED_LOGOUT);
+
+        LogoutInfo newLogoutInfo = LogoutInfo.builder()
+                .logoutAt(forcedAt)
+                .logoutReason(LogoutReason.FORCED)
+                .build();
+
+        return this.toBuilder()
+                .state(SessionState.FORCED_LOGOUT)
+                .logoutInfo(newLogoutInfo)
+                .build();
+    }
+
     public @NonNull Session updateActivity() {
         if (this.state != SessionState.ACTIVE) {
             throw new SessionInvalidStateException();
         }
 
-        SessionMetadata updatedMetadata = SessionMetadata.builder()
-                .ipAddress(this.metadata.getIpAddress())
-                .userAgent(this.metadata.getUserAgent())
-                .createdAt(this.metadata.getCreatedAt())
-                .expiresAt(this.metadata.getExpiresAt())
+        SessionMetadata updatedMetadata = this.metadata.toBuilder()
                 .lastActivityAt(Instant.now())
                 .build();
 

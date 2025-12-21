@@ -122,7 +122,16 @@ application:
 # SESSION CONFIGURATION (Test)
 # =============================================================================
 session:
-  expiration: 1h  # 1 hour for tests (shorter than production)
+  expiration: 1h
+  concurrent:
+    enabled: true
+    default-max: 5
+    default-strategy: FIFO
+    notify-new-device: false
+    geo-ip:
+      enabled: false
+    device-fingerprint:
+      algorithm: SHA-256
 
 # =============================================================================
 # LOGGING - Minimal for tests (avoid noise)

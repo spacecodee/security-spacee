@@ -86,7 +86,17 @@ application:
 # SESSION CONFIGURATION (Production)
 # =============================================================================
 session:
-  expiration: ${SESSION_EXPIRATION}  # Session expiration time (env var)
+  expiration: ${SESSION_EXPIRATION}
+  concurrent:
+    enabled: ${SESSION_CONCURRENT_ENABLED}
+    default-max: ${SESSION_CONCURRENT_MAX}
+    default-strategy: ${SESSION_CONCURRENT_STRATEGY}
+    notify-new-device: ${SESSION_NOTIFY_NEW_DEVICE}
+    geo-ip:
+      enabled: ${SESSION_GEOIP_ENABLED:false}
+      database-path: ${SESSION_GEOIP_DB_PATH:/data/GeoLite2-City.mmdb}
+    device-fingerprint:
+      algorithm: SHA-256
 
 # =============================================================================
 # LOGGING - Production (Minimal, JSON format recommended)

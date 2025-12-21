@@ -96,7 +96,7 @@ spring:
 # SERVER CONFIGURATION
 # =============================================================================
 server:
-  port: 8080  # Override in profile-specific files if needed
+  port: 8080
   shutdown: graceful
   compression:
     enabled: true
@@ -178,8 +178,19 @@ application:
 # =============================================================================
 # SESSION CONFIGURATION
 # =============================================================================
+# SESSION CONFIGURATION
+# =============================================================================
 session:
-  expiration: 24h  # Session expiration time (24 hours)
+  expiration: 24h
+  concurrent:
+    enabled: true
+    default-max: 5
+    default-strategy: FIFO
+    notify-new-device: true
+    geo-ip:
+      enabled: false
+    device-fingerprint:
+      algorithm: SHA-256
 
 # =============================================================================
 # LOGGING CONFIGURATION (SLF4J)
