@@ -145,7 +145,7 @@ public final class RefreshTokenUseCase implements IRefreshTokenUseCase {
         this.jwtTokenRepository.findLatestAccessTokenBySessionId(sessionId)
                 .ifPresent(oldAccessToken -> {
                     if (oldAccessToken.isActive()) {
-                        JwtToken expiredToken = oldAccessToken.markAsExpired(this.clockService.now());
+                        JwtToken expiredToken = oldAccessToken.markAsExpired();
                         this.jwtTokenRepository.save(expiredToken);
                     }
                 });
