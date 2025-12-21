@@ -10,7 +10,6 @@ import com.spacecodee.securityspacee.jwttoken.domain.exception.InvalidTokenTypeE
 import com.spacecodee.securityspacee.jwttoken.domain.exception.RevokedTokenException;
 import com.spacecodee.securityspacee.jwttoken.domain.exception.TokenAlreadyRevokedException;
 import com.spacecodee.securityspacee.jwttoken.domain.exception.TokenExpiredException;
-import com.spacecodee.securityspacee.jwttoken.domain.exception.TokenHasNotExpiredException;
 import com.spacecodee.securityspacee.jwttoken.domain.valueobject.Claims;
 import com.spacecodee.securityspacee.jwttoken.domain.valueobject.Jti;
 import com.spacecodee.securityspacee.jwttoken.domain.valueobject.RevocationInfo;
@@ -61,6 +60,10 @@ public final class JwtToken {
         return this.state == TokenState.ACTIVE && !this.isExpired();
     }
 
+    public boolean isUsable(@NonNull Instant currentTime) {
+        return this.state == TokenState.ACTIVE && !currentTime.isAfter(this.expiryDate);
+    }
+
     @Contract("_, _, _ -> new")
     public @NonNull JwtToken revoke(Integer revokedBy, @NonNull String reason, @NonNull Instant revokedAt) {
         if (this.isRevoked()) {
@@ -79,15 +82,13 @@ public final class JwtToken {
                 .build();
     }
 
-    @Contract("_ -> new")
-    public @NonNull JwtToken markAsExpired(@NonNull Instant now) {
-        if (now.isBefore(this.expiryDate)) {
-            throw new TokenHasNotExpiredException("jwttoken.exception.token_has_not_expired");
+    public @NonNull JwtToken markAsExpired() {
+        if (this.state == TokenState.ACTIVE) {
+            return this.toBuilder()
+                    .state(TokenState.EXPIRED)
+                    .build();
         }
-
-        return this.toBuilder()
-                .state(TokenState.EXPIRED)
-                .build();
+        return this;
     }
 
     @Contract("_, _, _ -> new")

@@ -39,6 +39,7 @@ import com.spacecodee.securityspacee.jwttoken.infrastructure.persistence.mapper.
 import com.spacecodee.securityspacee.jwttoken.infrastructure.security.JwtAuthenticationFilter;
 import com.spacecodee.securityspacee.jwttoken.infrastructure.security.mapper.ISecurityAuthenticationMapper;
 import com.spacecodee.securityspacee.jwttoken.infrastructure.security.mapper.SecurityAuthenticationMapperImpl;
+import com.spacecodee.securityspacee.session.domain.repository.ISessionRepository;
 import com.spacecodee.securityspacee.shared.application.port.out.IMessageResolverPort;
 import com.spacecodee.securityspacee.shared.config.properties.JwtProperties;
 
@@ -108,9 +109,11 @@ public class JwtTokenBeanConfiguration {
             IClockService clockService,
             ApplicationEventPublisher eventPublisher,
             IMessageResolverPort messageResolverPort,
-            ITokenValidationResponseMapper validationResponseMapper) {
+            ITokenValidationResponseMapper validationResponseMapper,
+            ISessionRepository sessionRepository) {
         return new ValidateTokenUseCase(
                 jwtTokenRepository,
+                sessionRepository,
                 jwtCryptoService,
                 clockService,
                 eventPublisher,

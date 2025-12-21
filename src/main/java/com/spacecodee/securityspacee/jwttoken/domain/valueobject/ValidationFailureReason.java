@@ -5,5 +5,8 @@ public enum ValidationFailureReason {
     INVALID_SIGNATURE,
     REVOKED,
     MALFORMED,
-    BLACKLISTED
+    BLACKLISTED,
+    SESSION_INACTIVE,
+    SESSION_EXPIRED,
+    SESSION_NOT_FOUND
 }

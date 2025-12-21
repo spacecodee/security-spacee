@@ -8,6 +8,7 @@ import com.spacecodee.securityspacee.jwttoken.application.mapper.ITokenValidatio
 import com.spacecodee.securityspacee.jwttoken.application.response.TokenValidationResponse;
 import com.spacecodee.securityspacee.jwttoken.domain.model.JwtToken;
 import com.spacecodee.securityspacee.jwttoken.domain.valueobject.Claims;
+import com.spacecodee.securityspacee.jwttoken.domain.valueobject.TokenMetadata;
 import com.spacecodee.securityspacee.jwttoken.domain.valueobject.TokenState;
 
 public final class TokenValidationResponseMapperImpl implements ITokenValidationResponseMapper {
@@ -26,7 +27,8 @@ public final class TokenValidationResponseMapperImpl implements ITokenValidation
                 claims.getRoles(),
                 claims.getSessionId(),
                 TokenState.ACTIVE,
-                expiry);
+                expiry,
+                null);
     }
 
     @Override
@@ -36,6 +38,12 @@ public final class TokenValidationResponseMapperImpl implements ITokenValidation
             @NonNull Claims claims,
             @NonNull Instant expiry) {
 
+        TokenMetadata metadata = TokenMetadata.builder()
+                .usageCount(jwtToken.getUsageCount())
+                .lastAccessAt(jwtToken.getLastAccessAt())
+                .issuedAt(jwtToken.getIssuedAt())
+                .build();
+
         return new TokenValidationResponse(
                 true,
                 jwtToken.getJti().toString(),
@@ -44,6 +52,7 @@ public final class TokenValidationResponseMapperImpl implements ITokenValidation
                 claims.getRoles(),
                 jwtToken.getSessionId(),
                 jwtToken.getState(),
-                expiry);
+                expiry,
+                metadata);
     }
 }
