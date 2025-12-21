@@ -36,6 +36,9 @@ import com.spacecodee.securityspacee.jwttoken.infrastructure.persistence.JwtToke
 import com.spacecodee.securityspacee.jwttoken.infrastructure.persistence.jpa.SpringJpaJwtTokenRepository;
 import com.spacecodee.securityspacee.jwttoken.infrastructure.persistence.mapper.IJwtTokenPersistenceMapper;
 import com.spacecodee.securityspacee.jwttoken.infrastructure.persistence.mapper.impl.JwtTokenPersistenceMapperImpl;
+import com.spacecodee.securityspacee.jwttoken.infrastructure.security.JwtAuthenticationFilter;
+import com.spacecodee.securityspacee.jwttoken.infrastructure.security.mapper.ISecurityAuthenticationMapper;
+import com.spacecodee.securityspacee.jwttoken.infrastructure.security.mapper.SecurityAuthenticationMapperImpl;
 import com.spacecodee.securityspacee.shared.application.port.out.IMessageResolverPort;
 import com.spacecodee.securityspacee.shared.config.properties.JwtProperties;
 
@@ -198,5 +201,17 @@ public class JwtTokenBeanConfiguration {
     public RevokeAllTokensOnPasswordChangeListener revokeAllTokensOnPasswordChangeListener(
             IRevokeAllUserTokensUseCase revokeAllUserTokensUseCase) {
         return new RevokeAllTokensOnPasswordChangeListener(revokeAllUserTokensUseCase);
+    }
+
+    @Bean
+    public ISecurityAuthenticationMapper securityAuthenticationMapper() {
+        return new SecurityAuthenticationMapperImpl();
+    }
+
+    @Bean
+    public JwtAuthenticationFilter jwtAuthenticationFilter(
+            IValidateTokenUseCase validateTokenUseCase,
+            ISecurityAuthenticationMapper securityAuthenticationMapper) {
+        return new JwtAuthenticationFilter(validateTokenUseCase, securityAuthenticationMapper);
     }
 }
