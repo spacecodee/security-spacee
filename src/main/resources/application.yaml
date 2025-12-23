@@ -96,7 +96,7 @@ spring:
 # SERVER CONFIGURATION
 # =============================================================================
 server:
-  port: 8080  # Override in profile-specific files if needed
+  port: 8080
   shutdown: graceful
   compression:
     enabled: true
@@ -157,11 +157,15 @@ application:
   # JWT Configuration - MUST be overridden in profile files
   jwt:
     issuer: security-spacee
+    audience: security-spacee-api
+    access-expiration: 900        # 15 minutes in seconds
+    refresh-expiration: 604800    # 7 days in seconds
 
   # Security - Sensible defaults, override as needed
   security:
-    max-login-attempts: 5
-    account-lock-duration: 900000  # 15 minutes in ms
+    allowed-origins: "*"
+    max-login-attempts: 10
+    account-lock-duration: 15  # Duration in minutes
 
   # Cache TTL (milliseconds) - Sensible defaults
   cache:
@@ -170,6 +174,35 @@ application:
       user-roles: 900000       # 15 minutes
       permissions: 3600000     # 1 hour
       jwt-blacklist: 2592000000  # 30 days
+
+# =============================================================================
+# SESSION CONFIGURATION
+# =============================================================================
+# SESSION CONFIGURATION
+# =============================================================================
+session:
+  expiration: 24h
+  concurrent:
+    enabled: true
+    default-max: 5
+    default-strategy: FIFO
+    notify-new-device: true
+    geo-ip:
+      enabled: false
+    device-fingerprint:
+      algorithm: SHA-256
+  timeout:
+    absolute: PT24H
+    idle: PT30M
+    sliding-expiration: false
+    warning-threshold: PT5M
+    cleanup:
+      idle-check-interval: 60000
+      absolute-check-interval: 300000
+    activity-tracking:
+      enabled: true
+      async: true
+      batch-updates: false
 
 # =============================================================================
 # LOGGING CONFIGURATION (SLF4J)

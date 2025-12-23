@@ -255,18 +255,23 @@ cp .env.example .env
 
 Key environment variables:
 
-| Variable                            | Description              | Example               |
-|-------------------------------------|--------------------------|-----------------------|
-| `DB_HOST`                           | PostgreSQL host          | `localhost`           |
-| `DB_PORT`                           | PostgreSQL port          | `5432`                |
-| `DB_NAME`                           | Database name            | `security_spacee_db`  |
-| `DB_USERNAME`                       | Database user            | `spacecodee`          |
-| `DB_PASSWORD`                       | Database password        | `SecurePass123!`      |
-| `REDIS_HOST`                        | Redis host               | `localhost`           |
-| `REDIS_PORT`                        | Redis port               | `6379`                |
-| `JWT_SECRET_KEY`                    | JWT signing key (Base64) | `your-256-bit-secret` |
-| `JWT_ACCESS_TOKEN_VALIDITY_MINUTES` | Access token expiry      | `30`                  |
-| `JWT_REFRESH_TOKEN_VALIDITY_DAYS`   | Refresh token expiry     | `7`                   |
+| Variable                 | Description              | Example                  |
+|--------------------------|--------------------------|--------------------------|
+| `DB_HOST`                | PostgreSQL host          | `localhost`              |
+| `DB_PORT`                | PostgreSQL port          | `5432`                   |
+| `DB_NAME`                | Database name            | `security_spacee_db`     |
+| `DB_USERNAME`            | Database user            | `spacecodee`             |
+| `DB_PASSWORD`            | Database password        | `SecurePass123!`         |
+| `REDIS_HOST`             | Redis host               | `localhost`              |
+| `REDIS_PORT`             | Redis port               | `6379`                   |
+| `JWT_SECRET`             | JWT signing key (Base64) | `your-512-bit-secret`    |
+| `JWT_ISSUER`             | JWT issuer claim         | `security-spacee`        |
+| `JWT_AUDIENCE`           | JWT audience claim       | `security-spacee-api`    |
+| `JWT_ACCESS_EXPIRATION`  | Access token TTL (sec)   | `900` (15 minutes)       |
+| `JWT_REFRESH_EXPIRATION` | Refresh token TTL (sec)  | `604800` (7 days)        |
+| `MAIL_HOST`              | SMTP server host         | `localhost` or `mailpit` |
+| `MAIL_PORT`              | SMTP server port         | `1025` (Mailpit)         |
+| `ALLOWED_ORIGINS`        | CORS allowed origins     | `http://localhost:3000`  |
 
 See `.env.example` for the complete list of available variables.
 
