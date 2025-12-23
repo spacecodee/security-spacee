@@ -191,6 +191,18 @@ session:
       enabled: false
     device-fingerprint:
       algorithm: SHA-256
+  timeout:
+    absolute: PT24H
+    idle: PT30M
+    sliding-expiration: false
+    warning-threshold: PT5M
+    cleanup:
+      idle-check-interval: 60000
+      absolute-check-interval: 300000
+    activity-tracking:
+      enabled: true
+      async: true
+      batch-updates: false
 
 # =============================================================================
 # LOGGING CONFIGURATION (SLF4J)

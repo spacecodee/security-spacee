@@ -93,10 +93,22 @@ session:
     default-strategy: ${SESSION_CONCURRENT_STRATEGY}
     notify-new-device: ${SESSION_NOTIFY_NEW_DEVICE}
     geo-ip:
-      enabled: ${SESSION_GEOIP_ENABLED:false}
-      database-path: ${SESSION_GEOIP_DB_PATH:/data/GeoLite2-City.mmdb}
+      enabled: ${SESSION_GEOIP_ENABLED}
+      database-path: ${SESSION_GEOIP_DB_PATH}
     device-fingerprint:
       algorithm: SHA-256
+  timeout:
+    absolute: ${SESSION_TIMEOUT_ABSOLUTE}
+    idle: ${SESSION_TIMEOUT_IDLE}
+    sliding-expiration: ${SESSION_TIMEOUT_SLIDING}
+    warning-threshold: ${SESSION_TIMEOUT_WARNING}
+    cleanup:
+      idle-check-interval: ${SESSION_CLEANUP_IDLE_INTERVAL}
+      absolute-check-interval: ${SESSION_CLEANUP_ABSOLUTE_INTERVAL}
+    activity-tracking:
+      enabled: ${SESSION_ACTIVITY_TRACKING_ENABLED}
+      async: ${SESSION_ACTIVITY_TRACKING_ASYNC}
+      batch-updates: ${SESSION_ACTIVITY_TRACKING_BATCH}
 
 # =============================================================================
 # LOGGING - Production (Minimal, JSON format recommended)
