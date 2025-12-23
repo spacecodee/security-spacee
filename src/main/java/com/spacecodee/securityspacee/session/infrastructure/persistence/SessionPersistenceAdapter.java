@@ -1,5 +1,6 @@
 package com.spacecodee.securityspacee.session.infrastructure.persistence;
 
+import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -104,5 +105,21 @@ public class SessionPersistenceAdapter implements ISessionRepository {
     @Transactional(readOnly = true)
     public boolean existsBySessionToken(@NonNull SessionToken sessionToken) {
         return this.jpaRepository.existsBySessionToken(sessionToken.toString());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public @NonNull List<Session> findInactiveSessions(@NonNull Instant cutoff) {
+        return this.jpaRepository.findInactiveSessions(cutoff).stream()
+                .map(this.mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public @NonNull List<Session> findAbsoluteExpired(@NonNull Instant now) {
+        return this.jpaRepository.findAbsoluteExpired(now).stream()
+                .map(this.mapper::toDomain)
+                .toList();
     }
 }

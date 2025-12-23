@@ -86,6 +86,76 @@ public final class Session {
                 .build();
     }
 
+    public @NonNull Session updateLastActivityAt(@NonNull Instant timestamp) {
+        Objects.requireNonNull(timestamp, "timestamp cannot be null");
+
+        if (!this.isActive()) {
+            throw new SessionInvalidStateException();
+        }
+
+        SessionMetadata updatedMetadata = this.metadata.toBuilder()
+                .lastActivityAt(timestamp)
+                .build();
+
+        return this.toBuilder()
+                .metadata(updatedMetadata)
+                .build();
+    }
+
+    public @NonNull Session extendExpiration(@NonNull Instant newExpiresAt) {
+        Objects.requireNonNull(newExpiresAt, "newExpiresAt cannot be null");
+
+        if (!this.isActive()) {
+            throw new SessionInvalidStateException();
+        }
+
+        SessionMetadata updatedMetadata = this.metadata.toBuilder()
+                .expiresAt(newExpiresAt)
+                .build();
+
+        return this.toBuilder()
+                .metadata(updatedMetadata)
+                .build();
+    }
+
+    public @NonNull Session expireByTimeout(@NonNull String reason, @NonNull Instant expiredAt) {
+        Objects.requireNonNull(reason, "reason cannot be null");
+        Objects.requireNonNull(expiredAt, "expiredAt cannot be null");
+
+        this.validateStateTransition(SessionState.EXPIRED);
+
+        LogoutInfo newLogoutInfo = LogoutInfo.builder()
+                .logoutAt(expiredAt)
+                .logoutReason(LogoutReason.TIMEOUT)
+                .build();
+
+        return this.toBuilder()
+                .state(SessionState.EXPIRED)
+                .logoutInfo(newLogoutInfo)
+                .build();
+    }
+
+    public @NonNull Duration getIdleTime(@NonNull Instant currentTime) {
+        Objects.requireNonNull(currentTime, "currentTime cannot be null or empty");
+        return Duration.between(this.metadata.getLastActivityAt(), currentTime);
+    }
+
+    public @NonNull Duration getRemainingAbsoluteTime(@NonNull Instant currentTime) {
+        Objects.requireNonNull(currentTime, "currentTime cannot be null, empty");
+        return Duration.between(currentTime, this.metadata.getExpiresAt());
+    }
+
+    public boolean isIdleExpired(@NonNull Duration idleTimeout, @NonNull Instant currentTime) {
+        Objects.requireNonNull(idleTimeout, "idleTimeout cannot be null");
+        Objects.requireNonNull(currentTime, "currentTime cannot be null");
+        return this.getIdleTime(currentTime).compareTo(idleTimeout) > 0;
+    }
+
+    public boolean isAbsoluteExpired(@NonNull Instant currentTime) {
+        Objects.requireNonNull(currentTime, "currentTime cannot be null");
+        return this.metadata.getExpiresAt().isBefore(currentTime);
+    }
+
     public boolean isExpired() {
         return Instant.now().isAfter(this.metadata.getExpiresAt()) ||
                 this.state == SessionState.EXPIRED;

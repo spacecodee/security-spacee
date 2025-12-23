@@ -7,12 +7,15 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.spacecodee.securityspacee.session.adapter.mapper.ISessionStatusResponseMapper;
+import com.spacecodee.securityspacee.session.adapter.mapper.impl.SessionStatusResponseMapperImpl;
 import com.spacecodee.securityspacee.session.application.eventlistener.CreateSessionOnLoginEventListener;
 import com.spacecodee.securityspacee.session.application.eventlistener.UpdateSessionActivityEventListener;
 import com.spacecodee.securityspacee.session.application.mapper.ISessionResponseMapper;
 import com.spacecodee.securityspacee.session.application.mapper.ISessionSummaryMapper;
 import com.spacecodee.securityspacee.session.application.mapper.impl.SessionResponseMapperImpl;
 import com.spacecodee.securityspacee.session.application.mapper.impl.SessionSummaryMapperImpl;
+import com.spacecodee.securityspacee.session.application.port.in.ICheckSessionExpirationUseCase;
 import com.spacecodee.securityspacee.session.application.port.in.ICreateSessionUseCase;
 import com.spacecodee.securityspacee.session.application.port.in.IGetActiveSessionsUseCase;
 import com.spacecodee.securityspacee.session.application.port.in.IGetSessionUseCase;
@@ -25,23 +28,29 @@ import com.spacecodee.securityspacee.session.application.port.out.IUserAgentPars
 import com.spacecodee.securityspacee.session.application.usecase.SessionActiveRetriever;
 import com.spacecodee.securityspacee.session.application.usecase.SessionActivityUpdater;
 import com.spacecodee.securityspacee.session.application.usecase.SessionCreator;
+import com.spacecodee.securityspacee.session.application.usecase.SessionExpirationChecker;
 import com.spacecodee.securityspacee.session.application.usecase.SessionFinder;
 import com.spacecodee.securityspacee.session.application.usecase.SessionLogoutHandler;
 import com.spacecodee.securityspacee.session.application.usecase.SessionRemoteLogoutHandler;
 import com.spacecodee.securityspacee.session.domain.repository.ISessionRepository;
 import com.spacecodee.securityspacee.session.domain.service.ISessionPolicyService;
+import com.spacecodee.securityspacee.session.domain.service.ITimeoutPolicyService;
+import com.spacecodee.securityspacee.session.domain.service.SessionExpirationService;
 import com.spacecodee.securityspacee.session.infrastructure.config.properties.SessionProperties;
+import com.spacecodee.securityspacee.session.infrastructure.config.properties.SessionTimeoutProperties;
 import com.spacecodee.securityspacee.session.infrastructure.persistence.SessionPersistenceAdapter;
 import com.spacecodee.securityspacee.session.infrastructure.persistence.jpa.SpringJpaSessionRepository;
 import com.spacecodee.securityspacee.session.infrastructure.persistence.mapper.ISessionPersistenceMapper;
 import com.spacecodee.securityspacee.session.infrastructure.persistence.mapper.impl.SessionPersistenceMapperImpl;
 import com.spacecodee.securityspacee.session.infrastructure.service.DefaultSessionPolicyService;
+import com.spacecodee.securityspacee.session.infrastructure.service.DefaultTimeoutPolicyService;
 import com.spacecodee.securityspacee.session.infrastructure.service.DeviceFingerprintServiceAdapter;
 import com.spacecodee.securityspacee.session.infrastructure.service.DisabledGeoIpService;
 import com.spacecodee.securityspacee.session.infrastructure.service.UAParserAdapter;
+import com.spacecodee.securityspacee.shared.application.port.out.IMessageResolverPort;
 
 @Configuration
-@EnableConfigurationProperties(SessionProperties.class)
+@EnableConfigurationProperties({SessionProperties.class, SessionTimeoutProperties.class})
 public class SessionBeanConfiguration {
 
     @Bean
@@ -116,9 +125,11 @@ public class SessionBeanConfiguration {
     @Bean
     public @NonNull IUpdateSessionActivityUseCase updateSessionActivityUseCase(
             @NonNull ISessionRepository sessionRepository,
-            @NonNull ISessionResponseMapper responseMapper,
+            @NonNull ITimeoutPolicyService timeoutPolicyService,
+            @NonNull SessionExpirationService sessionExpirationService,
             @NonNull ApplicationEventPublisher eventPublisher) {
-        return new SessionActivityUpdater(sessionRepository, responseMapper, eventPublisher);
+        return new SessionActivityUpdater(sessionRepository, timeoutPolicyService, sessionExpirationService,
+                eventPublisher);
     }
 
     @Bean
@@ -161,5 +172,31 @@ public class SessionBeanConfiguration {
     public @NonNull UpdateSessionActivityEventListener updateSessionActivityEventListener(
             @NonNull ISessionRepository sessionRepository) {
         return new UpdateSessionActivityEventListener(sessionRepository);
+    }
+
+    @Bean
+    public @NonNull ITimeoutPolicyService timeoutPolicyService(
+            @NonNull SessionTimeoutProperties timeoutProperties) {
+        return new DefaultTimeoutPolicyService(timeoutProperties);
+    }
+
+    @Bean
+    public @NonNull SessionExpirationService sessionExpirationService(
+            @NonNull ISessionRepository sessionRepository,
+            @NonNull ApplicationEventPublisher eventPublisher) {
+        return new SessionExpirationService(sessionRepository, eventPublisher);
+    }
+
+    @Bean
+    public @NonNull ISessionStatusResponseMapper sessionStatusResponseMapper() {
+        return new SessionStatusResponseMapperImpl();
+    }
+
+    @Bean
+    public @NonNull ICheckSessionExpirationUseCase checkSessionExpirationUseCase(
+            @NonNull ISessionRepository sessionRepository,
+            @NonNull ITimeoutPolicyService timeoutPolicyService,
+            @NonNull IMessageResolverPort messageResolverPort) {
+        return new SessionExpirationChecker(sessionRepository, timeoutPolicyService, messageResolverPort);
     }
 }

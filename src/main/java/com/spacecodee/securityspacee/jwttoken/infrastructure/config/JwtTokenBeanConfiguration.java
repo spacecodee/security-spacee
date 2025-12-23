@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.spacecodee.securityspacee.jwttoken.application.listener.RevokeAllTokensOnPasswordChangeListener;
+import com.spacecodee.securityspacee.jwttoken.application.listener.RevokeTokensOnAbsoluteTimeoutListener;
+import com.spacecodee.securityspacee.jwttoken.application.listener.RevokeTokensOnIdleTimeoutListener;
 import com.spacecodee.securityspacee.jwttoken.application.listener.RevokeTokensOnLogoutEventListener;
 import com.spacecodee.securityspacee.jwttoken.application.listener.RevokeTokensOnSessionExpiredEventListener;
 import com.spacecodee.securityspacee.jwttoken.application.mapper.IClaimsMapper;
@@ -204,6 +206,18 @@ public class JwtTokenBeanConfiguration {
     public RevokeAllTokensOnPasswordChangeListener revokeAllTokensOnPasswordChangeListener(
             IRevokeAllUserTokensUseCase revokeAllUserTokensUseCase) {
         return new RevokeAllTokensOnPasswordChangeListener(revokeAllUserTokensUseCase);
+    }
+
+    @Bean
+    public RevokeTokensOnIdleTimeoutListener revokeTokensOnIdleTimeoutListener(
+            IRevokeAllSessionTokensUseCase revokeAllSessionTokensUseCase) {
+        return new RevokeTokensOnIdleTimeoutListener(revokeAllSessionTokensUseCase);
+    }
+
+    @Bean
+    public RevokeTokensOnAbsoluteTimeoutListener revokeTokensOnAbsoluteTimeoutListener(
+            IRevokeAllSessionTokensUseCase revokeAllSessionTokensUseCase) {
+        return new RevokeTokensOnAbsoluteTimeoutListener(revokeAllSessionTokensUseCase);
     }
 
     @Bean

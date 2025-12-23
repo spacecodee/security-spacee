@@ -1,5 +1,6 @@
 package com.spacecodee.securityspacee.session.domain.repository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,4 +42,10 @@ public interface ISessionRepository {
     void deleteByUserId(@NonNull Integer userId);
 
     boolean existsBySessionToken(@NonNull SessionToken sessionToken);
+
+    @NonNull
+    List<Session> findInactiveSessions(@NonNull Instant cutoff);
+
+    @NonNull
+    List<Session> findAbsoluteExpired(@NonNull Instant now);
 }
