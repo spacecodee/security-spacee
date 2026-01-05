@@ -22,6 +22,8 @@ import lombok.Getter;
 @Builder(toBuilder = true)
 public final class Session {
 
+    private static final String REASON_NULL_ERROR = "Reason cannot be null";
+
     private final SessionId sessionId;
     private final SessionToken sessionToken;
     private final Integer userId;
@@ -55,8 +57,35 @@ public final class Session {
                 .build();
     }
 
+    public @NonNull Session logout(@NonNull String reason, @NonNull Instant logoutAt, @NonNull Integer loggedOutBy) {
+        Objects.requireNonNull(reason, REASON_NULL_ERROR);
+        Objects.requireNonNull(logoutAt, "LogoutAt cannot be null");
+        Objects.requireNonNull(loggedOutBy, "LoggedOutBy cannot be null");
+
+        if (!this.isActive()) {
+            throw new SessionInvalidStateException();
+        }
+
+        LogoutReason logoutReason = LogoutReason.fromString(reason);
+        SessionState targetState = logoutReason == LogoutReason.FORCED ? SessionState.FORCED_LOGOUT
+                : SessionState.LOGGED_OUT;
+
+        this.validateStateTransition(targetState);
+
+        LogoutInfo newLogoutInfo = LogoutInfo.builder()
+                .logoutAt(logoutAt)
+                .logoutReason(logoutReason)
+                .loggedOutBy(loggedOutBy)
+                .build();
+
+        return this.toBuilder()
+                .state(targetState)
+                .logoutInfo(newLogoutInfo)
+                .build();
+    }
+
     public @NonNull Session forceLogout(@NonNull String reason, @NonNull Instant forcedAt) {
-        Objects.requireNonNull(reason, "Reason cannot be null");
+        Objects.requireNonNull(reason, REASON_NULL_ERROR);
         Objects.requireNonNull(forcedAt, "ForcedAt cannot be null");
 
         this.validateStateTransition(SessionState.FORCED_LOGOUT);
@@ -70,6 +99,30 @@ public final class Session {
                 .state(SessionState.FORCED_LOGOUT)
                 .logoutInfo(newLogoutInfo)
                 .build();
+    }
+
+    public @NonNull Session forceLogout(@NonNull String reason, @NonNull Instant forcedAt, @NonNull Integer forcedBy) {
+        Objects.requireNonNull(reason, REASON_NULL_ERROR);
+        Objects.requireNonNull(forcedAt, "ForcedAt cannot be null");
+        Objects.requireNonNull(forcedBy, "ForcedBy cannot be null");
+
+        this.validateStateTransition(SessionState.FORCED_LOGOUT);
+
+        LogoutInfo newLogoutInfo = LogoutInfo.builder()
+                .logoutAt(forcedAt)
+                .logoutReason(LogoutReason.FORCED)
+                .loggedOutBy(forcedBy)
+                .build();
+
+        return this.toBuilder()
+                .state(SessionState.FORCED_LOGOUT)
+                .logoutInfo(newLogoutInfo)
+                .build();
+    }
+
+    public boolean isOwnedBy(@NonNull Integer userId) {
+        Objects.requireNonNull(userId, "userId cannot be null");
+        return Objects.equals(this.userId, userId);
     }
 
     public @NonNull Session updateActivity() {
