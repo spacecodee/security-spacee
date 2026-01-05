@@ -11,20 +11,28 @@ import com.spacecodee.securityspacee.session.adapter.mapper.ISessionStatusRespon
 import com.spacecodee.securityspacee.session.adapter.mapper.impl.SessionStatusResponseMapperImpl;
 import com.spacecodee.securityspacee.session.application.eventlistener.CreateSessionOnLoginEventListener;
 import com.spacecodee.securityspacee.session.application.eventlistener.UpdateSessionActivityEventListener;
+import com.spacecodee.securityspacee.session.application.mapper.ILogoutAllResponseMapper;
+import com.spacecodee.securityspacee.session.application.mapper.ILogoutResponseMapper;
 import com.spacecodee.securityspacee.session.application.mapper.ISessionResponseMapper;
 import com.spacecodee.securityspacee.session.application.mapper.ISessionSummaryMapper;
+import com.spacecodee.securityspacee.session.application.mapper.impl.LogoutAllResponseMapperImpl;
+import com.spacecodee.securityspacee.session.application.mapper.impl.LogoutResponseMapperImpl;
 import com.spacecodee.securityspacee.session.application.mapper.impl.SessionResponseMapperImpl;
 import com.spacecodee.securityspacee.session.application.mapper.impl.SessionSummaryMapperImpl;
 import com.spacecodee.securityspacee.session.application.port.in.ICheckSessionExpirationUseCase;
 import com.spacecodee.securityspacee.session.application.port.in.ICreateSessionUseCase;
 import com.spacecodee.securityspacee.session.application.port.in.IGetActiveSessionsUseCase;
 import com.spacecodee.securityspacee.session.application.port.in.IGetSessionUseCase;
+import com.spacecodee.securityspacee.session.application.port.in.ILogoutAllSessionsUseCase;
 import com.spacecodee.securityspacee.session.application.port.in.ILogoutRemoteSessionUseCase;
 import com.spacecodee.securityspacee.session.application.port.in.ILogoutSessionUseCase;
+import com.spacecodee.securityspacee.session.application.port.in.ILogoutUseCase;
 import com.spacecodee.securityspacee.session.application.port.in.IUpdateSessionActivityUseCase;
 import com.spacecodee.securityspacee.session.application.port.out.IDeviceFingerprintService;
 import com.spacecodee.securityspacee.session.application.port.out.IGeoIpService;
 import com.spacecodee.securityspacee.session.application.port.out.IUserAgentParser;
+import com.spacecodee.securityspacee.session.application.usecase.LogoutAllSessionsUseCase;
+import com.spacecodee.securityspacee.session.application.usecase.LogoutUseCase;
 import com.spacecodee.securityspacee.session.application.usecase.SessionActiveRetriever;
 import com.spacecodee.securityspacee.session.application.usecase.SessionActivityUpdater;
 import com.spacecodee.securityspacee.session.application.usecase.SessionCreator;
@@ -38,6 +46,7 @@ import com.spacecodee.securityspacee.session.domain.service.ITimeoutPolicyServic
 import com.spacecodee.securityspacee.session.domain.service.SessionExpirationService;
 import com.spacecodee.securityspacee.session.infrastructure.config.properties.SessionProperties;
 import com.spacecodee.securityspacee.session.infrastructure.config.properties.SessionTimeoutProperties;
+import com.spacecodee.securityspacee.session.infrastructure.event.SessionEventPublisher;
 import com.spacecodee.securityspacee.session.infrastructure.persistence.SessionPersistenceAdapter;
 import com.spacecodee.securityspacee.session.infrastructure.persistence.jpa.SpringJpaSessionRepository;
 import com.spacecodee.securityspacee.session.infrastructure.persistence.mapper.ISessionPersistenceMapper;
@@ -46,6 +55,7 @@ import com.spacecodee.securityspacee.session.infrastructure.service.DefaultSessi
 import com.spacecodee.securityspacee.session.infrastructure.service.DefaultTimeoutPolicyService;
 import com.spacecodee.securityspacee.session.infrastructure.service.DeviceFingerprintServiceAdapter;
 import com.spacecodee.securityspacee.session.infrastructure.service.DisabledGeoIpService;
+import com.spacecodee.securityspacee.session.infrastructure.service.SessionValidationService;
 import com.spacecodee.securityspacee.session.infrastructure.service.UAParserAdapter;
 import com.spacecodee.securityspacee.shared.application.port.out.IMessageResolverPort;
 
@@ -73,6 +83,29 @@ public class SessionBeanConfiguration {
     @Bean
     public @NonNull ISessionSummaryMapper sessionSummaryMapper() {
         return new SessionSummaryMapperImpl();
+    }
+
+    @Bean
+    public @NonNull ILogoutResponseMapper logoutResponseMapper(@NonNull MessageSource messageSource) {
+        return new LogoutResponseMapperImpl(messageSource);
+    }
+
+    @Bean
+    public @NonNull ILogoutAllResponseMapper logoutAllResponseMapper() {
+        return new LogoutAllResponseMapperImpl();
+    }
+
+    @Bean
+    public @NonNull SessionEventPublisher sessionEventPublisher(
+            @NonNull ApplicationEventPublisher eventPublisher) {
+        return new SessionEventPublisher(eventPublisher);
+    }
+
+    @Bean
+    public @NonNull SessionValidationService sessionValidationService(
+            @NonNull ISessionRepository sessionRepository,
+            @NonNull MessageSource messageSource) {
+        return new SessionValidationService(sessionRepository, messageSource);
     }
 
     @Bean
@@ -156,10 +189,32 @@ public class SessionBeanConfiguration {
 
     @Bean
     public @NonNull ILogoutRemoteSessionUseCase logoutRemoteSessionUseCase(
+            @NonNull ILogoutResponseMapper logoutResponseMapper,
+            @NonNull SessionEventPublisher sessionEventPublisher,
             @NonNull ISessionRepository sessionRepository,
-            @NonNull ApplicationEventPublisher eventPublisher,
+            @NonNull SessionValidationService sessionValidationService) {
+        return new SessionRemoteLogoutHandler(logoutResponseMapper, sessionEventPublisher, sessionRepository,
+                sessionValidationService);
+    }
+
+    @Bean
+    public @NonNull ILogoutUseCase logoutUseCase(
+            @NonNull ILogoutResponseMapper logoutResponseMapper,
+            @NonNull SessionEventPublisher sessionEventPublisher,
+            @NonNull ISessionRepository sessionRepository,
+            @NonNull SessionValidationService sessionValidationService) {
+        return new LogoutUseCase(logoutResponseMapper, sessionEventPublisher, sessionRepository,
+                sessionValidationService);
+    }
+
+    @Bean
+    public @NonNull ILogoutAllSessionsUseCase logoutAllSessionsUseCase(
+            @NonNull ISessionRepository sessionRepository,
+            @NonNull ILogoutAllResponseMapper logoutAllResponseMapper,
+            @NonNull SessionEventPublisher sessionEventPublisher,
             @NonNull MessageSource messageSource) {
-        return new SessionRemoteLogoutHandler(sessionRepository, eventPublisher, messageSource);
+        return new LogoutAllSessionsUseCase(sessionRepository, logoutAllResponseMapper, sessionEventPublisher,
+                messageSource);
     }
 
     @Bean

@@ -3,6 +3,7 @@ package com.spacecodee.securityspacee.session.infrastructure.persistence.mapper.
 import java.time.Instant;
 
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import com.spacecodee.securityspacee.session.domain.model.Session;
 import com.spacecodee.securityspacee.session.domain.valueobject.DeviceFingerprint;
@@ -16,7 +17,6 @@ import com.spacecodee.securityspacee.session.domain.valueobject.SessionToken;
 import com.spacecodee.securityspacee.session.infrastructure.persistence.jpa.LogoutReasonDb;
 import com.spacecodee.securityspacee.session.infrastructure.persistence.jpa.SessionEntity;
 import com.spacecodee.securityspacee.session.infrastructure.persistence.mapper.ISessionPersistenceMapper;
-import org.jspecify.annotations.Nullable;
 
 public final class SessionPersistenceMapperImpl implements ISessionPersistenceMapper {
 
@@ -122,9 +122,9 @@ public final class SessionPersistenceMapperImpl implements ISessionPersistenceMa
     private @NonNull LogoutReasonDb toLogoutReasonDb(@NonNull LogoutReason reason) {
         return switch (reason) {
             case MANUAL -> LogoutReasonDb.MANUAL;
-            case TIMEOUT -> LogoutReasonDb.TIMEOUT;
+            case TIMEOUT, SESSION_EXPIRED -> LogoutReasonDb.TIMEOUT;
             case FORCED -> LogoutReasonDb.FORCED;
-            case SECURITY -> LogoutReasonDb.SECURITY;
+            case SECURITY, ADMIN_ACTION, PASSWORD_CHANGED, ACCOUNT_DELETED -> LogoutReasonDb.SECURITY;
         };
     }
 

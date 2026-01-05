@@ -44,4 +44,14 @@ public interface IAuthController {
     @PostMapping("/refresh")
     ResponseEntity<ApiDataResponse<Object>> refresh(
             @Valid @RequestBody RefreshTokenRequest request, HttpServletRequest servletRequest);
+
+    @Operation(summary = "User Logout", description = "Logout current user session. Invalidates the session and revokes associated JWT tokens.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Logout successful. Session and tokens have been invalidated.", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiDataResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or expired authentication token", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "404", description = "Not Found - Session does not exist", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "409", description = "Conflict - Session already logged out", content = @Content(mediaType = "application/json"))
+    })
+    @PostMapping("/logout")
+    ResponseEntity<ApiDataResponse<Object>> logout(HttpServletRequest servletRequest);
 }

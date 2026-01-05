@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Configuration;
 import com.spacecodee.securityspacee.jwttoken.application.listener.RevokeAllTokensOnPasswordChangeListener;
 import com.spacecodee.securityspacee.jwttoken.application.listener.RevokeTokensOnAbsoluteTimeoutListener;
 import com.spacecodee.securityspacee.jwttoken.application.listener.RevokeTokensOnIdleTimeoutListener;
-import com.spacecodee.securityspacee.jwttoken.application.listener.RevokeTokensOnLogoutEventListener;
 import com.spacecodee.securityspacee.jwttoken.application.listener.RevokeTokensOnSessionExpiredEventListener;
 import com.spacecodee.securityspacee.jwttoken.application.mapper.IClaimsMapper;
 import com.spacecodee.securityspacee.jwttoken.application.mapper.ITokenPairMapper;
@@ -34,6 +33,7 @@ import com.spacecodee.securityspacee.jwttoken.application.usecase.ValidateTokenU
 import com.spacecodee.securityspacee.jwttoken.domain.repository.IJwtTokenRepository;
 import com.spacecodee.securityspacee.jwttoken.infrastructure.clock.ClockServiceAdapter;
 import com.spacecodee.securityspacee.jwttoken.infrastructure.crypto.JwtCryptoServiceAdapter;
+import com.spacecodee.securityspacee.jwttoken.infrastructure.listener.RevokeTokensOnLogoutEventListener;
 import com.spacecodee.securityspacee.jwttoken.infrastructure.persistence.JwtTokenPersistenceAdapter;
 import com.spacecodee.securityspacee.jwttoken.infrastructure.persistence.jpa.SpringJpaJwtTokenRepository;
 import com.spacecodee.securityspacee.jwttoken.infrastructure.persistence.mapper.IJwtTokenPersistenceMapper;
