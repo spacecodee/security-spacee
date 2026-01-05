@@ -63,8 +63,10 @@ application:
   # JWT Configuration (REQUIRED - Must be set via environment)
   jwt:
     secret: ${JWT_SECRET}
-    access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION}
-    refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION}
+    issuer: ${JWT_ISSUER}
+    audience: ${JWT_AUDIENCE}
+    access-expiration: ${JWT_ACCESS_EXPIRATION}
+    refresh-expiration: ${JWT_REFRESH_EXPIRATION}
 
   # Security - Production
   security:
@@ -79,6 +81,34 @@ application:
       user-roles: ${CACHE_TTL_USER_ROLES}
       permissions: ${CACHE_TTL_PERMISSIONS}
       jwt-blacklist: ${CACHE_TTL_JWT_BLACKLIST}
+
+# =============================================================================
+# SESSION CONFIGURATION (Production)
+# =============================================================================
+session:
+  expiration: ${SESSION_EXPIRATION}
+  concurrent:
+    enabled: ${SESSION_CONCURRENT_ENABLED}
+    default-max: ${SESSION_CONCURRENT_MAX}
+    default-strategy: ${SESSION_CONCURRENT_STRATEGY}
+    notify-new-device: ${SESSION_NOTIFY_NEW_DEVICE}
+    geo-ip:
+      enabled: ${SESSION_GEOIP_ENABLED}
+      database-path: ${SESSION_GEOIP_DB_PATH}
+    device-fingerprint:
+      algorithm: SHA-256
+  timeout:
+    absolute: ${SESSION_TIMEOUT_ABSOLUTE}
+    idle: ${SESSION_TIMEOUT_IDLE}
+    sliding-expiration: ${SESSION_TIMEOUT_SLIDING}
+    warning-threshold: ${SESSION_TIMEOUT_WARNING}
+    cleanup:
+      idle-check-interval: ${SESSION_CLEANUP_IDLE_INTERVAL}
+      absolute-check-interval: ${SESSION_CLEANUP_ABSOLUTE_INTERVAL}
+    activity-tracking:
+      enabled: ${SESSION_ACTIVITY_TRACKING_ENABLED}
+      async: ${SESSION_ACTIVITY_TRACKING_ASYNC}
+      batch-updates: ${SESSION_ACTIVITY_TRACKING_BATCH}
 
 # =============================================================================
 # LOGGING - Production (Minimal, JSON format recommended)

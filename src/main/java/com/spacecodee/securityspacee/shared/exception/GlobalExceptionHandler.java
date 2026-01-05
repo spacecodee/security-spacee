@@ -1,5 +1,6 @@
 package com.spacecodee.securityspacee.shared.exception;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -16,6 +17,15 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.spacecodee.securityspacee.auth.domain.exception.InvalidCredentialsException;
+import com.spacecodee.securityspacee.auth.domain.exception.UserAccountLockedException;
+import com.spacecodee.securityspacee.auth.domain.exception.UserNotFoundException;
+import com.spacecodee.securityspacee.session.domain.exception.MaxSessionsExceededException;
+import com.spacecodee.securityspacee.shared.exception.base.AuthenticationException;
+import com.spacecodee.securityspacee.shared.exception.base.AuthorizationException;
+import com.spacecodee.securityspacee.shared.exception.base.ConflictException;
+import com.spacecodee.securityspacee.shared.exception.base.ResourceNotFoundException;
+import com.spacecodee.securityspacee.shared.exception.base.ValidationException;
 import com.spacecodee.securityspacee.user.domain.exception.DuplicateEmailException;
 import com.spacecodee.securityspacee.user.domain.exception.DuplicateUsernameException;
 import com.spacecodee.securityspacee.user.domain.exception.InvalidUserDataException;
@@ -34,76 +44,234 @@ public class GlobalExceptionHandler {
         this.messageSource = messageSource;
     }
 
-    @ExceptionHandler(DuplicateUsernameException.class)
-    public ResponseEntity<ProblemDetail> handleDuplicateUsername(
-            @NonNull DuplicateUsernameException ex,
+    /**
+     * Handler for AuthenticationException (401 UNAUTHORIZED)
+     * Covers: InvalidTokenException, TokenExpiredException,
+     * InvalidSignatureException,
+     * TokenRevokedException, RevokedTokenException, TokenNotFoundException,
+     * UserNotFoundException, InvalidCredentialsException, SessionExpiredException
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ProblemDetail> handleAuthenticationException(
+            @NonNull AuthenticationException ex,
             @NonNull HttpServletRequest request) {
-        log.warn("DuplicateUsernameException: {}", ex.getUsername());
+        log.warn("AuthenticationException: {}", ex.getClass().getSimpleName());
 
         Locale locale = LocaleContextHolder.getLocale();
+        String title = determineAuthenticationExceptionTitle(ex, locale);
         String message = messageSource.getMessage(
                 ex.getMessage(),
-                new Object[]{ex.getUsername()},
+                null,
                 ex.getMessage(),
                 locale);
 
         ProblemDetail problem = ProblemDetail.builder()
-                .type(PROBLEM_BASE_URI + "duplicate-username")
-                .title(messageSource.getMessage("user.exception.duplicate_username", null, locale))
-                .status(HttpStatus.CONFLICT.value())
+                .type(PROBLEM_BASE_URI + "authentication-error")
+                .title(title)
+                .status(HttpStatus.UNAUTHORIZED.value())
                 .detail(message)
                 .instance(request.getRequestURI())
                 .build();
 
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(problem);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem);
     }
 
-    @ExceptionHandler(DuplicateEmailException.class)
-    public ResponseEntity<ProblemDetail> handleDuplicateEmail(
-            @NonNull DuplicateEmailException ex,
+    /**
+     * Handler for AuthorizationException (403 FORBIDDEN)
+     * Covers: AccountInactiveException
+     */
+    @ExceptionHandler(AuthorizationException.class)
+    public ResponseEntity<ProblemDetail> handleAuthorizationException(
+            @NonNull AuthorizationException ex,
             @NonNull HttpServletRequest request) {
-        log.warn("DuplicateEmailException: {}", ex.getEmail());
+        log.warn("AuthorizationException: {}", ex.getClass().getSimpleName());
 
         Locale locale = LocaleContextHolder.getLocale();
+        String title = messageSource.getMessage("auth.exception.account_inactive", null, locale);
         String message = messageSource.getMessage(
                 ex.getMessage(),
-                new Object[]{ex.getEmail()},
+                null,
                 ex.getMessage(),
                 locale);
 
         ProblemDetail problem = ProblemDetail.builder()
-                .type(PROBLEM_BASE_URI + "duplicate-email")
-                .title(messageSource.getMessage("user.exception.duplicate_email", null, locale))
-                .status(HttpStatus.CONFLICT.value())
+                .type(PROBLEM_BASE_URI + "authorization-error")
+                .title(title)
+                .status(HttpStatus.FORBIDDEN.value())
                 .detail(message)
                 .instance(request.getRequestURI())
                 .build();
 
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(problem);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(problem);
     }
 
-    @ExceptionHandler(InvalidUserDataException.class)
-    public ResponseEntity<ProblemDetail> handleInvalidUserData(
-            @NonNull InvalidUserDataException ex,
+    /**
+     * Handler for ValidationException (400 BAD_REQUEST)
+     * Covers: TokenHasNotExpiredException, InvalidTokenTypeException,
+     * InvalidUserDataException, SessionInvalidStateException
+     */
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<ProblemDetail> handleValidationException(
+            @NonNull ValidationException ex,
             @NonNull HttpServletRequest request) {
-        log.warn("InvalidUserDataException: {}", ex.getMessageKey());
+        log.warn("ValidationException: {}", ex.getClass().getSimpleName());
 
         Locale locale = LocaleContextHolder.getLocale();
-        String message = messageSource.getMessage(
-                ex.getMessageKey(),
-                ex.getArgs(),
-                ex.getMessageKey(),
-                locale);
+        String title = determineValidationExceptionTitle(ex, locale);
+
+        String message;
+        if (ex instanceof InvalidUserDataException invalidUserData) {
+            message = messageSource.getMessage(
+                    invalidUserData.getMessageKey(),
+                    invalidUserData.getArgs(),
+                    invalidUserData.getMessageKey(),
+                    locale);
+        } else {
+            message = messageSource.getMessage(
+                    ex.getMessage(),
+                    null,
+                    ex.getMessage(),
+                    locale);
+        }
 
         ProblemDetail problem = ProblemDetail.builder()
-                .type(PROBLEM_BASE_URI + "invalid-user-data")
-                .title(messageSource.getMessage("user.exception.invalid_user_data", null, locale))
+                .type(PROBLEM_BASE_URI + "validation-error")
+                .title(title)
                 .status(HttpStatus.BAD_REQUEST.value())
                 .detail(message)
                 .instance(request.getRequestURI())
                 .build();
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem);
+    }
+
+    /**
+     * Handler for ResourceNotFoundException (404 NOT_FOUND)
+     * Covers: SessionNotFoundException
+     */
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleResourceNotFoundException(
+            @NonNull ResourceNotFoundException ex,
+            @NonNull HttpServletRequest request) {
+        log.warn("ResourceNotFoundException: {}", ex.getClass().getSimpleName());
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String title = messageSource.getMessage("session.error.not_found", null, locale);
+        String message = messageSource.getMessage(
+                ex.getMessage(),
+                null,
+                ex.getMessage(),
+                locale);
+
+        ProblemDetail problem = ProblemDetail.builder()
+                .type(PROBLEM_BASE_URI + "not-found")
+                .title(title)
+                .status(HttpStatus.NOT_FOUND.value())
+                .detail(message)
+                .instance(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
+    }
+
+    /**
+     * Handler for ConflictException (409 CONFLICT)
+     * Covers: TokenAlreadyRevokedException, DuplicateUsernameException,
+     * DuplicateEmailException
+     */
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ProblemDetail> handleConflictException(
+            @NonNull ConflictException ex,
+            @NonNull HttpServletRequest request) {
+        log.warn("ConflictException: {}", ex.getClass().getSimpleName());
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String title = determineConflictExceptionTitle(ex, locale);
+
+        String message = switch (ex) {
+            case DuplicateUsernameException dup -> messageSource.getMessage(
+                    ex.getMessage(),
+                    new Object[]{dup.getUsername()},
+                    ex.getMessage(),
+                    locale);
+            case DuplicateEmailException dup -> messageSource.getMessage(
+                    ex.getMessage(),
+                    new Object[]{dup.getEmail()},
+                    ex.getMessage(),
+                    locale);
+            default -> messageSource.getMessage(
+                    ex.getMessage(),
+                    null,
+                    ex.getMessage(),
+                    locale);
+        };
+
+        ProblemDetail problem = ProblemDetail.builder()
+                .type(PROBLEM_BASE_URI + "conflict")
+                .title(title)
+                .status(HttpStatus.CONFLICT.value())
+                .detail(message)
+                .instance(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(problem);
+    }
+
+    /**
+     * Handler for AccountLockedException (423 LOCKED)
+     * Special case: Requires lockedUntil timestamp
+     */
+    @ExceptionHandler(UserAccountLockedException.class)
+    public ResponseEntity<ProblemDetail> handleAccountLocked(
+            @NonNull UserAccountLockedException ex,
+            @NonNull HttpServletRequest request) {
+        log.warn("UserAccountLockedException: Account locked until {}", ex.getLockedUntil());
+
+        Locale locale = LocaleContextHolder.getLocale();
+        Instant lockedUntil = ex.getLockedUntil();
+
+        String message = messageSource.getMessage(
+                ex.getMessage(),
+                null,
+                ex.getMessage(),
+                locale);
+
+        ProblemDetail problem = ProblemDetail.builder()
+                .type(PROBLEM_BASE_URI + "account-locked")
+                .title(messageSource.getMessage("auth.exception.account_locked",
+                        new Object[]{lockedUntil.toString()}, locale))
+                .status(HttpStatus.LOCKED.value())
+                .detail(message)
+                .instance(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.LOCKED).body(problem);
+    }
+
+    /**
+     * Handler for MaxSessionsExceededException (429 TOO MANY REQUESTS)
+     */
+    @ExceptionHandler(MaxSessionsExceededException.class)
+    public ResponseEntity<ProblemDetail> handleMaxSessionsExceededException(
+            @NonNull MaxSessionsExceededException ex,
+            @NonNull HttpServletRequest request) {
+        log.warn("MaxSessionsExceededException: {}", ex.getMessage());
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String title = messageSource.getMessage("session.exception.max_sessions_exceeded_title",
+                null,
+                "Maximum Sessions Exceeded",
+                locale);
+
+        ProblemDetail problem = ProblemDetail.builder()
+                .type(PROBLEM_BASE_URI + "max-sessions-exceeded")
+                .title(title)
+                .status(HttpStatus.TOO_MANY_REQUESTS.value())
+                .detail(ex.getMessage())
+                .instance(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(problem);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -172,5 +340,38 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(problem);
+    }
+
+    // Helper methods for determining titles based on specific exception types
+
+    private @NonNull String determineAuthenticationExceptionTitle(
+            AuthenticationException ex,
+            Locale locale) {
+        if (ex instanceof UserNotFoundException) {
+            return messageSource.getMessage("auth.exception.user_not_found", null, locale);
+        } else if (ex instanceof InvalidCredentialsException) {
+            return messageSource.getMessage("auth.exception.invalid_credentials", null, locale);
+        }
+        return messageSource.getMessage("error.authentication.title", null, locale);
+    }
+
+    private @NonNull String determineValidationExceptionTitle(
+            ValidationException ex,
+            Locale locale) {
+        if (ex instanceof InvalidUserDataException) {
+            return messageSource.getMessage("user.exception.invalid_user_data", null, locale);
+        }
+        return messageSource.getMessage("validation.error.title", null, locale);
+    }
+
+    private @NonNull String determineConflictExceptionTitle(
+            ConflictException ex,
+            Locale locale) {
+        if (ex instanceof DuplicateUsernameException) {
+            return messageSource.getMessage("user.exception.duplicate_username", null, locale);
+        } else if (ex instanceof DuplicateEmailException) {
+            return messageSource.getMessage("user.exception.duplicate_email", null, locale);
+        }
+        return messageSource.getMessage("conflict.error.title", null, locale);
     }
 }

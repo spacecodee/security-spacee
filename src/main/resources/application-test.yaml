@@ -99,15 +99,16 @@ application:
   jwt:
     # Test secret - 64 bytes base64 encoded (512 bits for HS512)
     secret: 3v8pQkQwK1JpQ2ZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9vQkZpQk9v
-    access-token-expiration: 900000       # 15 minutes
-    refresh-token-expiration: 604800000   # 7 days
     issuer: security-spacee-test
+    audience: security-spacee-api-test
+    access-expiration: 900      # 15 minutes in seconds
+    refresh-expiration: 604800  # 7 days in seconds
 
   # Security - Test configuration
   security:
     allowed-origins: http://localhost:8080,http://localhost:3000
-    max-login-attempts: 5
-    account-lock-duration: 900000
+    max-login-attempts: 3  # Lower for faster test execution
+    account-lock-duration: 5  # 5 minutes for tests
 
   # Cache TTL - Shorter for tests
   cache:
@@ -117,6 +118,32 @@ application:
       permissions: 60000      # 1 minute
       jwt-blacklist: 60000    # 1 minute
 
+# =============================================================================
+# SESSION CONFIGURATION (Test)
+# =============================================================================
+session:
+  expiration: 1h
+  concurrent:
+    enabled: true
+    default-max: 5
+    default-strategy: FIFO
+    notify-new-device: false
+    geo-ip:
+      enabled: false
+    device-fingerprint:
+      algorithm: SHA-256
+  timeout:
+    absolute: PT1H
+    idle: PT30M
+    sliding-expiration: false
+    warning-threshold: PT5M
+    cleanup:
+      idle-check-interval: 60000
+      absolute-check-interval: 300000
+    activity-tracking:
+      enabled: true
+      async: true
+      batch-updates: false
 # =============================================================================
 # LOGGING - Minimal for tests (avoid noise)
 # =============================================================================

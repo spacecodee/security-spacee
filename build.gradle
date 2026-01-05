@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '4.0.0'
+    id 'org.springframework.boot' version '4.0.1'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'org.sonarqube' version '7.2.1.6560'
 }
@@ -50,6 +50,12 @@ dependencies {
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
     // --- EMAIL ---
     implementation 'org.springframework.boot:spring-boot-starter-mail'
+    // --- USER AGENT PARSING ---
+    // https://mvnrepository.com/artifact/com.github.ua-parser/uap-java
+    implementation 'com.github.ua-parser:uap-java:1.6.1'
+    // --- GEOIP (Optional - for location detection) ---
+    // <https://mvnrepository.com/artifact/com.maxmind.geoip2/geoip2>
+    implementation 'com.maxmind.geoip2:geoip2:5.0.2'
     // --- TOOLING (Compile Only) ---
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
