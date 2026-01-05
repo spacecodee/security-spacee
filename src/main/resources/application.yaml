@@ -63,6 +63,13 @@ spring:
           max-wait: -1ms
 
   # ===========================================================================
+  # CACHE CONFIGURATION (Redis)
+  # TTL and serialization configured in RedisCacheConfig.java
+  # ===========================================================================
+  cache:
+    type: redis
+
+  # ===========================================================================
   # EMAIL CONFIGURATION (SMTP)
   # Override in profile-specific files
   # ===========================================================================
@@ -203,6 +210,13 @@ session:
       enabled: true
       async: true
       batch-updates: false
+
+# =============================================================================
+# ROLE CONFIGURATION
+# =============================================================================
+app:
+  role:
+    max-hierarchy-depth: 5  # Maximum depth for role hierarchy tree (1-10)
 
 # =============================================================================
 # LOGGING CONFIGURATION (SLF4J)

@@ -40,6 +40,13 @@ spring:
     enabled: false
 
   # ===========================================================================
+  # CACHE CONFIGURATION (Redis - Test)
+  # TTL and serialization configured in RedisCacheConfig.java
+  # ===========================================================================
+  cache:
+    type: redis
+
+  # ===========================================================================
   # H2 CONSOLE (Optional - for debugging tests)
   # ===========================================================================
   # WARNING: The H2 console exposes database access and should only be enabled
@@ -50,15 +57,13 @@ spring:
       path: /h2-console
 
   # ===========================================================================
-  # REDIS - Disabled or use embedded/mock
+  # REDIS - Test configuration
   # ===========================================================================
   data:
     redis:
       host: localhost
       port: 6379
       password:
-  cache:
-    type: simple  # Use simple in-memory cache instead of Redis
 
   # ===========================================================================
   # EMAIL - Mock configuration (no real SMTP)
@@ -144,6 +149,14 @@ session:
       enabled: true
       async: true
       batch-updates: false
+
+# =============================================================================
+# ROLE CONFIGURATION (Test)
+# =============================================================================
+app:
+  role:
+    max-hierarchy-depth: 3  # Lower depth for faster test execution
+
 # =============================================================================
 # LOGGING - Minimal for tests (avoid noise)
 # =============================================================================

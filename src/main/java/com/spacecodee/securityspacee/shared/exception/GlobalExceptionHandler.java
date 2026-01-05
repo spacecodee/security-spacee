@@ -20,6 +20,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.spacecodee.securityspacee.auth.domain.exception.InvalidCredentialsException;
 import com.spacecodee.securityspacee.auth.domain.exception.UserAccountLockedException;
 import com.spacecodee.securityspacee.auth.domain.exception.UserNotFoundException;
+import com.spacecodee.securityspacee.role.domain.exception.ParentRoleNotFoundException;
+import com.spacecodee.securityspacee.role.domain.exception.RoleAlreadyExistsException;
+import com.spacecodee.securityspacee.role.domain.exception.RoleHierarchyCycleException;
+import com.spacecodee.securityspacee.role.domain.exception.RoleNotFoundException;
+import com.spacecodee.securityspacee.role.domain.exception.SystemRoleTagAlreadyUsedException;
 import com.spacecodee.securityspacee.session.domain.exception.MaxSessionsExceededException;
 import com.spacecodee.securityspacee.shared.exception.base.AuthenticationException;
 import com.spacecodee.securityspacee.shared.exception.base.AuthorizationException;
@@ -147,7 +152,8 @@ public class GlobalExceptionHandler {
 
     /**
      * Handler for ResourceNotFoundException (404 NOT_FOUND)
-     * Covers: SessionNotFoundException
+     * Covers: SessionNotFoundException, ParentRoleNotFoundException,
+     * RoleNotFoundException
      */
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ProblemDetail> handleResourceNotFoundException(
@@ -156,7 +162,7 @@ public class GlobalExceptionHandler {
         log.warn("ResourceNotFoundException: {}", ex.getClass().getSimpleName());
 
         Locale locale = LocaleContextHolder.getLocale();
-        String title = messageSource.getMessage("session.error.not_found", null, locale);
+        String title = determineResourceNotFoundExceptionTitle(ex, locale);
         String message = messageSource.getMessage(
                 ex.getMessage(),
                 null,
@@ -177,7 +183,8 @@ public class GlobalExceptionHandler {
     /**
      * Handler for ConflictException (409 CONFLICT)
      * Covers: TokenAlreadyRevokedException, DuplicateUsernameException,
-     * DuplicateEmailException
+     * DuplicateEmailException, RoleAlreadyExistsException,
+     * SystemRoleTagAlreadyUsedException
      */
     @ExceptionHandler(ConflictException.class)
     public ResponseEntity<ProblemDetail> handleConflictException(
@@ -197,6 +204,16 @@ public class GlobalExceptionHandler {
             case DuplicateEmailException dup -> messageSource.getMessage(
                     ex.getMessage(),
                     new Object[]{dup.getEmail()},
+                    ex.getMessage(),
+                    locale);
+            case RoleAlreadyExistsException dup -> messageSource.getMessage(
+                    ex.getMessage(),
+                    new Object[]{dup.getRoleName()},
+                    ex.getMessage(),
+                    locale);
+            case SystemRoleTagAlreadyUsedException dup -> messageSource.getMessage(
+                    ex.getMessage(),
+                    new Object[]{dup.getSystemRoleTag()},
                     ex.getMessage(),
                     locale);
             default -> messageSource.getMessage(
@@ -360,6 +377,8 @@ public class GlobalExceptionHandler {
             Locale locale) {
         if (ex instanceof InvalidUserDataException) {
             return messageSource.getMessage("user.exception.invalid_user_data", null, locale);
+        } else if (ex instanceof RoleHierarchyCycleException) {
+            return messageSource.getMessage("role.error.hierarchy_cycle", null, locale);
         }
         return messageSource.getMessage("validation.error.title", null, locale);
     }
@@ -371,7 +390,20 @@ public class GlobalExceptionHandler {
             return messageSource.getMessage("user.exception.duplicate_username", null, locale);
         } else if (ex instanceof DuplicateEmailException) {
             return messageSource.getMessage("user.exception.duplicate_email", null, locale);
+        } else if (ex instanceof RoleAlreadyExistsException) {
+            return messageSource.getMessage("role.exception.role_already_exists", null, locale);
+        } else if (ex instanceof SystemRoleTagAlreadyUsedException) {
+            return messageSource.getMessage("role.exception.system_role_tag_already_used", null, locale);
         }
         return messageSource.getMessage("conflict.error.title", null, locale);
+    }
+
+    private @NonNull String determineResourceNotFoundExceptionTitle(
+            ResourceNotFoundException ex,
+            Locale locale) {
+        if (ex instanceof ParentRoleNotFoundException || ex instanceof RoleNotFoundException) {
+            return messageSource.getMessage("role.error.not_found", null, locale);
+        }
+        return messageSource.getMessage("session.error.not_found", null, locale);
     }
 }

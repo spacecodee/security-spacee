@@ -28,6 +28,13 @@ spring:
       password: ${REDIS_PASSWORD}
 
   # ===========================================================================
+  # CACHE CONFIGURATION (Redis - Production)
+  # TTL and serialization configured in RedisCacheConfig.java
+  # ===========================================================================
+  cache:
+    type: redis
+
+  # ===========================================================================
   # EMAIL (Production SMTP)
   # ===========================================================================
   mail:
@@ -109,6 +116,13 @@ session:
       enabled: ${SESSION_ACTIVITY_TRACKING_ENABLED}
       async: ${SESSION_ACTIVITY_TRACKING_ASYNC}
       batch-updates: ${SESSION_ACTIVITY_TRACKING_BATCH}
+
+# =============================================================================
+# ROLE CONFIGURATION (Production)
+# =============================================================================
+app:
+  role:
+    max-hierarchy-depth: ${ROLE_MAX_HIERARCHY_DEPTH:5}  # Default: 5
 
 # =============================================================================
 # LOGGING - Production (Minimal, JSON format recommended)
