@@ -2,7 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '4.0.1'
     id 'io.spring.dependency-management' version '1.1.7'
-    id 'org.sonarqube' version '7.2.1.6560'
+    id 'org.sonarqube' version '7.2.2.6593'
 }
 
 group = 'com.spacecodee'
@@ -38,9 +38,9 @@ dependencies {
     runtimeOnly 'io.netty:netty-resolver-dns-native-macos:4.2.7.Final:osx-x86_64'
     // --- DATABASE MIGRATIONS ---
     implementation 'org.springframework.boot:spring-boot-starter-flyway'
-    runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.18.0'
+    runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.20.0'
     // API DOCUMENTATION (OpenAPI/Swagger)
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1'
     // --- JWT SUPPORT ---
     implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
@@ -72,9 +72,9 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.1'
-    testImplementation 'org.testcontainers:testcontainers:2.0.2'
-    testImplementation 'org.testcontainers:junit-jupiter:1.21.3'
-    testImplementation 'org.testcontainers:postgresql:1.21.3'
+    testImplementation 'org.testcontainers:testcontainers:2.0.3'
+    testImplementation 'org.testcontainers:junit-jupiter:1.21.4'
+    testImplementation 'org.testcontainers:postgresql:1.21.4'
 
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
