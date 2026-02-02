@@ -3,7 +3,7 @@
 # Build the application using Gradle with dependency caching
 # ==============================================================================
 # Using official Gradle image with JDK 25 (Alpine for smaller size)
-FROM gradle:9.3.0-jdk25-alpine AS builder
+FROM gradle:9.3.1-jdk25-alpine AS builder
 
 WORKDIR /app
 
